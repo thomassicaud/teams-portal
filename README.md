@@ -96,8 +96,8 @@ src/
 
 ### 1. Cloner le repository
 ```bash
-git clone https://github.com/votre-org/portail-teams.git
-cd portail-teams
+git clone https://github.com/agencesi/teams-portal.git
+cd teams-portal
 ```
 
 ### 2. Installer les dépendances
