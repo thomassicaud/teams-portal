@@ -96,7 +96,7 @@ src/
 
 ### 1. Cloner le repository
 ```bash
-git clone https://github.com/agencesi/teams-portal.git
+git clone https://github.com/thomassicaud/teamas-portal/
 cd teams-portal
 ```
 
@@ -421,8 +421,7 @@ Ce projet est sous licence [MIT](LICENSE).
 
 ## 👥 Auteurs
 
-- **Développement initial** - [Agence SI](https://github.com/agencesi)
-- **Maintenance** - Équipe DevOps Agence SI
+- **Développement initial** - [thomassicaud](https://github.com/thomassicaud)
 
 ## 🙏 Remerciements
 
