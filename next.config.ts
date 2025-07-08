@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Configuration pour le support Docker
+  output: 'standalone',
+  
   // Allow cross-origin requests from local network IPs for development
   experimental: {
     allowedDevOrigins: [
@@ -10,6 +13,15 @@ const nextConfig: NextConfig = {
       '172.16.*.*',     // Private network range
     ],
   },
+  
+  // Configuration pour la production
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+  
+  // Optimisations pour Docker
+  poweredByHeader: false,
+  compress: true,
 };
 
 export default nextConfig;

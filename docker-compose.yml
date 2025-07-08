@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  portail-teams:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portail-teams-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      # Variables d'environnement Azure AD (à définir dans .env)
+      - NEXT_PUBLIC_AZURE_CLIENT_ID=${NEXT_PUBLIC_AZURE_CLIENT_ID}
+      - NEXT_PUBLIC_AZURE_TENANT_ID=${NEXT_PUBLIC_AZURE_TENANT_ID}
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Portail Teams}
+    env_file:
+      - .env.production
+    restart: unless-stopped
+    networks:
+      - portail-teams-network
+
+networks:
+  portail-teams-network:
+    driver: bridge
+
+# Pour le développement avec hot-reload
+---
+version: '3.8'
+
+services:
+  portail-teams-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: dev
+    container_name: portail-teams-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+      - NEXT_PUBLIC_AZURE_CLIENT_ID=${NEXT_PUBLIC_AZURE_CLIENT_ID}
+      - NEXT_PUBLIC_AZURE_TENANT_ID=${NEXT_PUBLIC_AZURE_TENANT_ID}
+    env_file:
+      - .env.local
+    command: npm run dev
+    networks:
+      - portail-teams-network
+
+networks:
+  portail-teams-network:
+    driver: bridge
