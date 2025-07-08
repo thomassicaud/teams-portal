@@ -12,10 +12,10 @@ class DelegatedAuthenticationProvider implements AuthenticationProvider {
 
 const defaultChannels = [
   { displayName: 'Général', description: 'Canal général pour les discussions' },
-  { displayName: 'Administratif', description: 'Canal pour les sujets administratifs' },
-  { displayName: 'Opérationnel', description: 'Canal pour les activités opérationnelles' },
-  { displayName: 'Informatique', description: 'Canal pour les sujets informatiques et techniques' },
-  { displayName: 'Dossiers Subventions', description: 'Canal pour la gestion des dossiers de subventions' },
+  { displayName: '1-ADMINISTRATIF', description: 'Canal pour les sujets administratifs' },
+  { displayName: '2-OPÉRATIONNEL', description: 'Canal pour les activités opérationnelles' },
+  { displayName: '3-INFORMATIQUE', description: 'Canal pour les sujets informatiques et techniques' },
+  { displayName: '4-DOSSIERS_DE_SUBVENTIONS', description: 'Canal pour la gestion des dossiers de subventions' },
 ];
 
 export async function POST(request: NextRequest) {

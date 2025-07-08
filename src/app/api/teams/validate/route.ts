@@ -22,25 +22,25 @@ const channelFolderStructures = {
     'Communication',
     'Archive',
   ],
-  'Administratif': [
-    'Contrats/Lot 1',
-    'Contrats/Lot 2', 
-    'Contrats/Lot 3',
-    'Accord de prise en charge',
-    'Facturation',
+  '1-ADMINISTRATIF': [
+    '1-Contrats/1-Lot_1',
+    '1-Contrats/2-Lot_2', 
+    '1-Contrats/3-Lot_3',
+    '2-Accord de prise en charge',
+    '3-Facturation',
   ],
-  'Opérationnel': [
-    'Lot 1/Cadrage Lancement',
-    'Lot 1/Analyse des besoins',
-    'Lot 1/Solutions',
-    'Lot 2',
-    'Lot 3',
+  '2-OPÉRATIONNEL': [
+    '1-Lot_1/Cadrage Lancement',
+    '1-Lot_1/Analyse des besoins',
+    '1-Lot_1/Solutions',
+    '2-Lot_2',
+    '3-Lot_3',
   ],
-  'Informatique': [
-    'Lot 1/Audit',
-    'Lot 1/Restitutions',
+  '3-INFORMATIQUE': [
+    '1-Lot_1/Audit',
+    '1-Lot_1/Restitutions',
   ],
-  'Dossiers Subventions': [
+  '4-DOSSIERS_DE_SUBVENTIONS': [
     // Pas de sous-dossiers spécifiés
   ],
 };

@@ -16,7 +16,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - ✨ Interface utilisateur guidée en 3 étapes
 - ✨ Retry logic pour la robustesse réseau
 - ✨ Gestion d'erreurs contextuelles avec solutions
-- ✨ Support des canaux : Général, Administratif, Opérationnel, Informatique, Dossiers Subventions
+- ✨ Support des canaux : Général, 1-ADMINISTRATIF, 2-OPÉRATIONNEL, 3-INFORMATIQUE, 4-DOSSIERS_DE_SUBVENTIONS
 
 ### Technical
 - 🏗️ Architecture Next.js 15 avec TypeScript

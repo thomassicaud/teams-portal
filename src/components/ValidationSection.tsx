@@ -290,7 +290,7 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
           <li><strong>Vérifier que l'équipe apparaît dans Teams</strong> (si ce n'est pas le cas, attendez 1-2 minutes)</li>
           <li><strong>Ouvrir Microsoft Teams</strong> (bouton ci-dessous)</li>
           <li><strong>Accéder à votre équipe</strong> nouvellement créée</li>
-          <li><strong>Pour chaque canal</strong> (Général, Administratif, Opérationnel, Informatique, Dossiers Subventions) :
+          <li><strong>Pour chaque canal</strong> (Général, 1-ADMINISTRATIF, 2-OPÉRATIONNEL, 3-INFORMATIQUE, 4-DOSSIERS_DE_SUBVENTIONS) :
             <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
               <li>Cliquer sur le canal</li>
               <li>Cliquer sur l'onglet <strong>"Fichiers"</strong></li>

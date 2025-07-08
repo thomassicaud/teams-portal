@@ -41,7 +41,7 @@ Portail Teams est une application Next.js qui automatise la création d'équipes
 ### 👥 Gestion des équipes
 - **Création d'équipes** avec nom personnalisé
 - **Ajout de propriétaires** et membres via recherche email
-- **Canaux automatiques** : Général, Administratif, Opérationnel, Informatique, Dossiers Subventions
+- **Canaux automatiques** : Général, 1-ADMINISTRATIF, 2-OPÉRATIONNEL, 3-INFORMATIQUE, 4-DOSSIERS_DE_SUBVENTIONS
 - **Validation en temps réel** des utilisateurs Office 365
 
 ### 📁 Structure SharePoint
