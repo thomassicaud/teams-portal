@@ -6,6 +6,7 @@ import { createGraphClient } from '@/lib/graph-client';
 import { getMsalInstance } from '@/lib/auth-config';
 import { LoginButton } from './LoginButton';
 import { ValidationSection } from './ValidationSection';
+import { ImageUpload } from './ImageUpload';
 
 interface TeamMember {
   id: string;
@@ -34,6 +35,8 @@ export function TeamCreationForm() {
   const [message, setMessage] = useState('');
   const [createdTeamId, setCreatedTeamId] = useState<string | null>(null);
   const [pendingTeamName, setPendingTeamName] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   const addMember = async () => {
     if (!memberEmail.trim() || !account) return;
@@ -175,6 +178,11 @@ export function TeamCreationForm() {
         setCreatedTeamId(result.teamId);
         setStatus('success');
         setMessage(result.message);
+        
+        // Upload de l'icône si fournie
+        if (selectedImage) {
+          await uploadTeamImage(result.teamId, selectedImage);
+        }
       }
     } catch (error) {
       console.error('Error creating team:', error);
@@ -240,12 +248,64 @@ export function TeamCreationForm() {
       setPendingTeamName(null);
       setStatus('success');
       setMessage(result.message);
+      
+      // Upload de l'icône si fournie
+      if (selectedImage) {
+        await uploadTeamImage(result.teamId, selectedImage);
+      }
     } catch (error) {
       console.error('Error finalizing team:', error);
       setMessage(error instanceof Error ? error.message : 'Erreur lors de la finalisation de l\'équipe');
       setStatus('error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fonction pour upload de l'icône d'équipe
+  const uploadTeamImage = async (teamId: string, imageFile: File) => {
+    if (!account) return;
+
+    setImageUploading(true);
+    try {
+      // Get fresh access token
+      const tokenRequest = {
+        scopes: [
+          'User.Read',
+          'Group.ReadWrite.All',
+          'Files.ReadWrite.All',
+        ],
+        account: account,
+      };
+
+      const msalInstance = getMsalInstance();
+      const authResult = await msalInstance.acquireTokenSilent(tokenRequest);
+      const accessToken = authResult.accessToken;
+
+      // Préparer FormData pour l'upload
+      const formData = new FormData();
+      formData.append('teamId', teamId);
+      formData.append('accessToken', accessToken);
+      formData.append('image', imageFile);
+
+      const response = await fetch('/api/teams/upload-icon', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erreur lors de l\'upload de l\'icône');
+      }
+
+      console.log('Icon uploaded successfully:', result);
+      setMessage(prevMessage => `${prevMessage} \n✅ Icône de l'équipe mise à jour avec succès!`);
+    } catch (error) {
+      console.error('Error uploading team icon:', error);
+      setMessage(prevMessage => `${prevMessage} \n⚠️ Icône non mise à jour: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    } finally {
+      setImageUploading(false);
     }
   };
 
@@ -273,6 +333,12 @@ export function TeamCreationForm() {
             placeholder="Entrez le nom de l'équipe"
           />
         </div>
+
+        {/* Team Image Upload */}
+        <ImageUpload
+          onImageSelect={setSelectedImage}
+          selectedImage={selectedImage}
+        />
 
         {/* Owner */}
         <div>
@@ -386,10 +452,10 @@ export function TeamCreationForm() {
               <div className="flex gap-3">
                 <button
                   onClick={finalizeTeam}
-                  disabled={loading}
+                  disabled={loading || imageUploading}
                   className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
-                  {loading ? 'Vérification en cours...' : 'Finaliser la configuration'}
+                  {loading ? 'Vérification en cours...' : imageUploading ? 'Upload de l\'icône...' : 'Finaliser la configuration'}
                 </button>
                 <button
                   onClick={() => window.open('https://teams.microsoft.com', '_blank')}
@@ -406,10 +472,10 @@ export function TeamCreationForm() {
         {status !== 'pending' && (
           <button
             onClick={createTeam}
-            disabled={loading || !formData.teamName.trim() || !formData.ownerId}
+            disabled={loading || imageUploading || !formData.teamName.trim() || !formData.ownerId}
             className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            {loading ? 'Création en cours...' : 'Créer l\'équipe Teams'}
+            {loading ? 'Création en cours...' : imageUploading ? 'Upload de l\'icône...' : 'Créer l\'équipe Teams'}
           </button>
         )}
 

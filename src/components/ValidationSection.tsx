@@ -154,6 +154,42 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
     }
   };
 
+  const testIconAccess = async () => {
+    if (!account) return;
+
+    try {
+      const tokenRequest = {
+        scopes: ['User.Read', 'Group.ReadWrite.All', 'Files.ReadWrite.All'],
+        account: account,
+      };
+
+      const msalInstance = getMsalInstance();
+      const authResult = await msalInstance.acquireTokenSilent(tokenRequest);
+      const accessToken = authResult.accessToken;
+
+      const response = await fetch('/api/teams/test-icon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ teamId, accessToken }),
+      });
+
+      const result = await response.json();
+      
+      console.log('🔍 Test icône résultat:', result);
+      
+      if (response.ok) {
+        alert(`✅ Test réussi!\n\nÉquipe: ${result.teamInfo.displayName}\nPhoto actuelle: ${result.hasCurrentPhoto ? 'Oui' : 'Non'}\n\nVoir console pour détails`);
+      } else {
+        alert(`❌ Test échoué: ${result.error}\n\nDétails: ${result.details}`);
+      }
+    } catch (error) {
+      console.error('Erreur test icône:', error);
+      alert(`❌ Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    }
+  };
+
   const openTeamsLink = () => {
     const teamsUrl = `https://teams.microsoft.com/l/team/${teamId}/conversations?groupId=${teamId}&tenantId=${process.env.NEXT_PUBLIC_AZURE_TENANT_ID}`;
     window.open(teamsUrl, '_blank');
@@ -326,6 +362,12 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
         >
           J'ai initialisé tous les onglets "Fichiers"
+        </button>
+        <button
+          onClick={testIconAccess}
+          className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+        >
+          🔍 Tester accès icône
         </button>
       </div>
     </div>

@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
         { 
           error: errorMessage,
           retryRecommended: true,
-          waitTime: searchError?.message?.includes('fetch failed') ? 30 : 120 // seconds
+          waitTime: (searchError as any)?.message?.includes('fetch failed') ? 30 : 120 // seconds
         },
         { status: 404 }
       );
