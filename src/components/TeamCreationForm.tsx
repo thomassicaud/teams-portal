@@ -135,7 +135,7 @@ export function TeamCreationForm() {
     try {
       // Get fresh access token
       const graphClient = createGraphClient(account);
-      const tokenResponse = await graphClient.api('/me').get(); // This will trigger token acquisition
+      await graphClient.api('/me').get(); // This will trigger token acquisition
       
       // Extract the token from the auth provider
       const tokenRequest = {
@@ -322,7 +322,7 @@ export function TeamCreationForm() {
         {/* Team Name */}
         <div>
           <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-2">
-            Nom de l'équipe *
+            Nom de l&apos;équipe *
           </label>
           <input
             type="text"
@@ -435,7 +435,7 @@ export function TeamCreationForm() {
               Équipe en cours de création
             </h3>
             <p className="text-yellow-700 mb-4">
-              L'équipe "<strong>{pendingTeamName}</strong>" est en cours de provisioning par Microsoft Teams. 
+              L&apos;équipe &quot;<strong>{pendingTeamName}</strong>&quot; est en cours de provisioning par Microsoft Teams. 
               Cela peut prendre quelques minutes.
             </p>
             <div className="space-y-3">
@@ -445,8 +445,8 @@ export function TeamCreationForm() {
                 </p>
                 <ol className="text-yellow-700 text-sm list-decimal list-inside space-y-1">
                   <li>Attendez 2-3 minutes pour le provisioning</li>
-                  <li>Vérifiez que l'équipe apparaît dans Microsoft Teams</li>
-                  <li>Cliquez sur "Finaliser la configuration" ci-dessous</li>
+                  <li>Vérifiez que l&apos;équipe apparaît dans Microsoft Teams</li>
+                  <li>Cliquez sur &quot;Finaliser la configuration&quot; ci-dessous</li>
                 </ol>
               </div>
               <div className="flex gap-3">

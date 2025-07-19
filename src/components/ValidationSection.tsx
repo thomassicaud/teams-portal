@@ -61,10 +61,10 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
 
       setValidationStatus('success');
       setValidationMessage(`✅ Test réussi ! Utilisateur: ${result.user}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Connectivity test failed:', error);
       setValidationStatus('error');
-      setValidationMessage(`❌ Test de connectivité échoué: ${error.message}`);
+      setValidationMessage(`❌ Test de connectivité échoué: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     } finally {
       setValidating(false);
     }
@@ -133,7 +133,7 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
       setValidationComplete(true);
       setValidationStatus('success');
       setValidationMessage(result.message);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error during validation:', error);
       setValidationStatus('error');
       
@@ -204,7 +204,7 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
         </h3>
         <div className="bg-green-50 border border-green-200 rounded-md p-4">
           <p className="text-green-800 mb-2">
-            L'équipe Teams a été créée avec succès et la structure de dossiers SharePoint est en place.
+            L&apos;équipe Teams a été créée avec succès et la structure de dossiers SharePoint est en place.
           </p>
           <div className="text-green-700 text-sm whitespace-pre-line">
             {validationMessage}
@@ -221,7 +221,7 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
                   <li>Vérifiez que tous les utilisateurs ont une licence Office 365 avec SharePoint</li>
                   <li>Attendez quelques minutes et réessayez (les licences peuvent prendre du temps à se synchroniser)</li>
                   <li>Créez les dossiers manuellement dans SharePoint si nécessaire</li>
-                  <li>Contactez l'administrateur IT pour vérifier les licences</li>
+                  <li>Contactez l&apos;administrateur IT pour vérifier les licences</li>
                 </ul>
               </div>
             </div>
@@ -268,7 +268,7 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
         
         <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
           <p className="text-green-800 mb-2">
-            ✅ <strong>Parfait !</strong> Les onglets "Fichiers" ont été initialisés.
+            ✅ <strong>Parfait !</strong> Les onglets &quot;Fichiers&quot; ont été initialisés.
           </p>
           <p className="text-green-700 text-sm">
             Vous pouvez maintenant créer la structure de dossiers standardisée dans chaque canal.
@@ -315,25 +315,25 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
   return (
     <div className="border-t pt-6 mt-6">
       <h3 className="text-lg font-medium text-gray-900 mb-4">
-        Étape 1 : Initialiser les onglets "Fichiers"
+        Étape 1 : Initialiser les onglets &quot;Fichiers&quot;
       </h3>
       
       <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
         <p className="text-blue-800 mb-3">
-          <strong>Action requise :</strong> Pour créer la structure de dossiers SharePoint, vous devez d'abord initialiser les onglets "Fichiers" :
+          <strong>Action requise :</strong> Pour créer la structure de dossiers SharePoint, vous devez d&apos;abord initialiser les onglets &quot;Fichiers&quot; :
         </p>
         <ol className="list-decimal list-inside text-blue-800 space-y-2 mb-3">
-          <li><strong>Vérifier que l'équipe apparaît dans Teams</strong> (si ce n'est pas le cas, attendez 1-2 minutes)</li>
+          <li><strong>Vérifier que l&apos;équipe apparaît dans Teams</strong> (si ce n&apos;est pas le cas, attendez 1-2 minutes)</li>
           <li><strong>Ouvrir Microsoft Teams</strong> (bouton ci-dessous)</li>
           <li><strong>Accéder à votre équipe</strong> nouvellement créée</li>
           <li><strong>Pour chaque canal</strong> (Général, 1-ADMINISTRATIF, 2-OPÉRATIONNEL, 3-INFORMATIQUE, 4-DOSSIERS_DE_SUBVENTIONS) :
             <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
               <li>Cliquer sur le canal</li>
-              <li>Cliquer sur l'onglet <strong>"Fichiers"</strong></li>
-              <li>Attendre que l'onglet se charge complètement</li>
+              <li>Cliquer sur l&apos;onglet <strong>&quot;Fichiers&quot;</strong></li>
+              <li>Attendre que l&apos;onglet se charge complètement</li>
             </ul>
           </li>
-          <li><strong>Revenir ici</strong> et cliquer sur "J'ai initialisé tous les onglets Fichiers"</li>
+          <li><strong>Revenir ici</strong> et cliquer sur &quot;J&apos;ai initialisé tous les onglets Fichiers&quot;</li>
         </ol>
         <div className="bg-blue-100 border border-blue-300 rounded p-3 mt-3">
           <p className="text-blue-800 text-sm">
@@ -361,7 +361,7 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
           onClick={() => setFilesInitialized(true)}
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
         >
-          J'ai initialisé tous les onglets "Fichiers"
+          J&apos;ai initialisé tous les onglets &quot;Fichiers&quot;
         </button>
         <button
           onClick={testIconAccess}

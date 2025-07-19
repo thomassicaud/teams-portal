@@ -7,7 +7,7 @@ interface ImageUploadProps {
   selectedImage: File | null;
 }
 
-export function ImageUpload({ onImageSelect, selectedImage }: ImageUploadProps) {
+export function ImageUpload({ onImageSelect }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,7 +96,7 @@ export function ImageUpload({ onImageSelect, selectedImage }: ImageUploadProps) 
   return (
     <div className="w-full">
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        Icône de l'équipe (optionnel)
+        Icône de l&apos;équipe (optionnel)
       </label>
       
       {preview ? (
@@ -105,7 +105,7 @@ export function ImageUpload({ onImageSelect, selectedImage }: ImageUploadProps) 
           <div className="w-32 h-32 mx-auto bg-white border-2 border-gray-300 rounded-lg overflow-hidden shadow-sm">
             <img 
               src={preview} 
-              alt="Prévisualisation de l'icône" 
+              alt="Prévisualisation de l&apos;icône" 
               className="w-full h-full object-cover"
             />
           </div>
@@ -166,7 +166,7 @@ export function ImageUpload({ onImageSelect, selectedImage }: ImageUploadProps) 
       />
       
       <p className="text-xs text-gray-500 mt-2">
-        L'icône apparaîtra dans Microsoft Teams et sera visible par tous les membres de l'équipe.
+        L&apos;icône apparaîtra dans Microsoft Teams et sera visible par tous les membres de l&apos;équipe.
       </p>
     </div>
   );

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { AuthenticationProvider } from '@microsoft/microsoft-graph-client';
+import { Channel, DriveItem } from '@microsoft/microsoft-graph-types';
 
 class DelegatedAuthenticationProvider implements AuthenticationProvider {
   constructor(private accessToken: string) {}
@@ -30,9 +31,9 @@ const channelFolderStructures = {
     '3-Facturation',
   ],
   '2-OPÉRATIONNEL': [
-    '1-Lot_1/Cadrage Lancement',
-    '1-Lot_1/Analyse des besoins',
-    '1-Lot_1/Solutions',
+    '1-Lot_1/1-Cadrage Lancement',
+    '1-Lot_1/2-Analyse des besoins',
+    '1-Lot_1/3-Solutions',
     '2-Lot_2',
     '3-Lot_3',
   ],
@@ -55,16 +56,17 @@ const retryOperation = async <T>(
     try {
       console.log(`${operationName} (attempt ${attempt}/${maxRetries})...`);
       return await operation();
-    } catch (error: any) {
-      const errorMsg = error.message || error;
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const statusCode = (error as { statusCode?: number }).statusCode;
       console.error(`${operationName} attempt ${attempt} failed:`, errorMsg);
       
       if (attempt < maxRetries && (
         errorMsg.includes('fetch failed') || 
         errorMsg.includes('network') || 
         errorMsg.includes('timeout') ||
-        error.statusCode === 429 || // Rate limit
-        error.statusCode >= 500 // Server errors
+        statusCode === 429 || // Rate limit
+        statusCode && statusCode >= 500 // Server errors
       )) {
         const delay = 2000 * attempt; // Progressive delay: 2s, 4s, 6s
         console.log(`Waiting ${delay}ms before retry...`);
@@ -110,7 +112,7 @@ export async function POST(request: NextRequest) {
     console.log(`Found ${channels.length} channels to process`);
 
     // For each channel, create the folder structure in SharePoint
-    const folderPromises = channels.map(async (channel: any) => {
+    const folderPromises = channels.map(async (channel: Channel) => {
       try {
         console.log(`Processing channel: ${channel.displayName}`);
         
@@ -128,7 +130,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get the SharePoint site and drive for this channel with retry
-        let driveResponse;
+        let driveResponse: DriveItem;
         try {
           console.log(`Getting files folder for channel ${channel.displayName} (ID: ${channel.id})`);
           driveResponse = await retryOperation(
@@ -136,9 +138,10 @@ export async function POST(request: NextRequest) {
             `Get files folder for channel ${channel.displayName}`
           );
           console.log(`Successfully got files folder for ${channel.displayName}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error(`Error getting files folder for ${channel.displayName}:`, error);
-          if (error.message && error.message.includes('license information')) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          if (errorMessage.includes('license information')) {
             console.log(`Skipping channel ${channel.displayName} due to license restrictions`);
             return {
               channelName: channel.displayName,
@@ -150,8 +153,8 @@ export async function POST(request: NextRequest) {
           throw error;
         }
 
-        const siteId = driveResponse.parentReference.siteId;
-        const driveId = driveResponse.parentReference.driveId;
+        const siteId = driveResponse.parentReference?.siteId;
+        const driveId = driveResponse.parentReference?.driveId;
         
         // Use the channel display name as the folder path (SharePoint creates folders with channel names)
         const channelFolderPath = channel.displayName;
@@ -161,8 +164,8 @@ export async function POST(request: NextRequest) {
         
         // Get the correct channel folder name from the driveResponse
         // The webUrl contains the full path, we need to extract the channel folder name
-        const urlParts = driveResponse.webUrl.split('/');
-        const actualChannelFolderName = urlParts[urlParts.length - 1];
+        const urlParts = driveResponse.webUrl?.split('/');
+        const actualChannelFolderName = urlParts?.[urlParts.length - 1];
         console.log(`Actual channel folder name from URL: ${actualChannelFolderName}`);
         console.log(`Full webUrl: ${driveResponse.webUrl}`);
 
@@ -209,8 +212,10 @@ export async function POST(request: NextRequest) {
                   successfulFolders++;
                 }
                 
-              } catch (error: any) {
-                if (error.statusCode === 409 || error.code === 'nameAlreadyExists') {
+              } catch (error: unknown) {
+                const statusCode = (error as { statusCode?: number }).statusCode;
+                const errorCode = (error as { code?: string }).code;
+                if (statusCode === 409 || errorCode === 'nameAlreadyExists') {
                   // Folder already exists, this is OK
                   console.log(`Folder already exists: ${actualChannelFolderName}/${currentPath}`);
                   if (i === pathParts.length - 1) {
@@ -280,7 +285,7 @@ export async function POST(request: NextRequest) {
       message: detailMessage.trim(),
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating folder structure:', error);
     
     let errorMessage = 'Failed to create folder structure';

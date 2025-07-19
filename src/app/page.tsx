@@ -23,7 +23,7 @@ export default function Home() {
       <header className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-900">Portail Teams</h1>
-          <p className="text-gray-600 mt-2">Créateur automatique d'équipes Microsoft Teams</p>
+          <p className="text-gray-600 mt-2">Créateur automatique d&apos;équipes Microsoft Teams</p>
         </div>
       </header>
 

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { AuthenticationProvider } from '@microsoft/microsoft-graph-client';
+import { Group, Channel } from '@microsoft/microsoft-graph-types';
+
+interface GroupWithTeamInfo extends Group {
+  resourceProvisioningOptions?: string[];
+}
 
 class DelegatedAuthenticationProvider implements AuthenticationProvider {
   constructor(private accessToken: string) {}
@@ -38,17 +43,17 @@ export async function POST(request: NextRequest) {
     // Search for the team using multiple methods with retry logic
     let foundTeam = null;
     let searchError = null;
-    let retryCount = 0;
     const maxRetries = 3;
     
     // Helper function to search with retry
-    const searchWithRetry = async (searchFn: () => Promise<any>, methodName: string) => {
+    const searchWithRetry = async (searchFn: () => Promise<{ value: Group[] }>, methodName: string) => {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           console.log(`${methodName} (attempt ${attempt}/${maxRetries})...`);
           return await searchFn();
-        } catch (error: any) {
-          console.error(`${methodName} attempt ${attempt} failed:`, error.message || error);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`${methodName} attempt ${attempt} failed:`, errorMessage);
           
           if (attempt < maxRetries) {
             const delay = 2000 * attempt; // Progressive delay: 2s, 4s, 6s
@@ -68,11 +73,11 @@ export async function POST(request: NextRequest) {
         'Method 1'
       );
       
-      console.log(`Found ${joinedTeams.value.length} joined teams`);
+      console.log(`Found ${joinedTeams?.value?.length || 0} joined teams`);
       
-      foundTeam = joinedTeams.value.find((team: any) => {
+      foundTeam = joinedTeams?.value?.find((team: Group) => {
         const match = team.displayName === teamName || 
-                     team.displayName.toLowerCase() === teamName.toLowerCase();
+                     team.displayName?.toLowerCase() === teamName.toLowerCase();
         if (match) {
           console.log(`Found team in joined teams: ${team.displayName}`);
         }
@@ -92,11 +97,12 @@ export async function POST(request: NextRequest) {
           'Method 2'
         );
         
-        console.log(`Found ${groups.value.length} member groups`);
+        console.log(`Found ${groups?.value?.length || 0} member groups`);
         
-        foundTeam = groups.value.find((group: any) => {
-          const isTeam = group.resourceProvisioningOptions && 
-                        group.resourceProvisioningOptions.includes('Team');
+        foundTeam = groups?.value?.find((group: Group) => {
+          const groupWithTeamInfo = group as GroupWithTeamInfo;
+          const isTeam = groupWithTeamInfo.resourceProvisioningOptions && 
+                        groupWithTeamInfo.resourceProvisioningOptions.includes('Team');
           
           // Check if displayName exists and is not null
           if (!group.displayName) {
@@ -129,9 +135,10 @@ export async function POST(request: NextRequest) {
         
         console.log(`Found ${allGroups.value.length} groups with matching name`);
         
-        foundTeam = allGroups.value.find((group: any) => {
-          const isTeam = group.resourceProvisioningOptions && 
-                        group.resourceProvisioningOptions.includes('Team');
+        foundTeam = allGroups.value.find((group: Group) => {
+          const groupWithTeamInfo = group as GroupWithTeamInfo;
+          const isTeam = groupWithTeamInfo.resourceProvisioningOptions && 
+                        groupWithTeamInfo.resourceProvisioningOptions.includes('Team');
           if (isTeam) {
             console.log(`Found team in all groups: ${group.displayName}`);
             return true;
@@ -155,11 +162,12 @@ export async function POST(request: NextRequest) {
         
         console.log(`Searching through ${allGroups.value.length} groups for partial matches`);
         
-        foundTeam = allGroups.value.find((group: any) => {
+        foundTeam = allGroups.value.find((group: Group) => {
           if (!group.displayName) return false;
           
-          const isTeam = group.resourceProvisioningOptions && 
-                        group.resourceProvisioningOptions.includes('Team');
+          const groupWithTeamInfo = group as GroupWithTeamInfo;
+          const isTeam = groupWithTeamInfo.resourceProvisioningOptions && 
+                        groupWithTeamInfo.resourceProvisioningOptions.includes('Team');
           const nameMatch = group.displayName.toLowerCase().includes(teamName.toLowerCase()) ||
                            teamName.toLowerCase().includes(group.displayName.toLowerCase());
           
@@ -196,7 +204,7 @@ export async function POST(request: NextRequest) {
         { 
           error: errorMessage,
           retryRecommended: true,
-          waitTime: (searchError as any)?.message?.includes('fetch failed') ? 30 : 120 // seconds
+          waitTime: (searchError instanceof Error && searchError.message?.includes('fetch failed')) ? 30 : 120 // seconds
         },
         { status: 404 }
       );
@@ -240,11 +248,11 @@ export async function POST(request: NextRequest) {
       .api(`/teams/${teamId}/channels`)
       .get();
     
-    const existingChannelNames = existingChannelsResponse.value.map((ch: any) => ch.displayName);
+    const existingChannelNames = existingChannelsResponse.value.map((ch: Channel) => ch.displayName);
     console.log(`Found existing channels: ${existingChannelNames.join(', ')}`);
 
     // Create additional channels (skip "General" as it's created automatically)
-    let successfulChannels = [];
+    const successfulChannels: (Channel & { existing?: boolean })[] = [];
     
     for (const channel of defaultChannels.slice(1)) {
       try {
@@ -272,8 +280,8 @@ export async function POST(request: NextRequest) {
           
         successfulChannels.push(createdChannel);
         console.log(`Successfully created channel: ${channel.displayName}`);
-      } catch (error: any) {
-        if (error.statusCode === 400 && error.message?.includes('already existed')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && 'statusCode' in error && (error as { statusCode: number }).statusCode === 400 && error.message?.includes('already existed')) {
           // Canal créé entre-temps, ce n'est pas grave
           console.log(`Channel ${channel.displayName} was created during our process, marking as existing`);
           successfulChannels.push({ displayName: channel.displayName, existing: true });
@@ -285,8 +293,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Distinguer les canaux créés des existants
-    const newChannels = successfulChannels.filter((ch: any) => !ch.existing);
-    const existingChannels = successfulChannels.filter((ch: any) => ch.existing);
+    const newChannels = successfulChannels.filter((ch) => !ch.existing);
+    const existingChannels = successfulChannels.filter((ch) => ch.existing);
     
     console.log(`Team finalization completed. New channels: ${newChannels.length}, Existing channels: ${existingChannels.length}, Members added: ${membersAdded}`);
 

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AccountInfo, AuthenticationResult } from '@azure/msal-browser';
-import { getMsalInstance, loginRequest } from '@/lib/auth-config';
+import { getMsalInstance } from '@/lib/auth-config';
 
 interface AuthContextType {
   account: AccountInfo | null;

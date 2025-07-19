@@ -22,7 +22,7 @@ class CustomAuthenticationProvider implements AuthenticationProvider {
     try {
       const response = await msalInstance.acquireTokenSilent(request);
       return response.accessToken;
-    } catch (error) {
+    } catch {
       const response = await msalInstance.acquireTokenPopup(request);
       return response.accessToken;
     }

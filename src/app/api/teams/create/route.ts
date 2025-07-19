@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { AuthenticationProvider } from '@microsoft/microsoft-graph-client';
 
+interface GraphError extends Error {
+  statusCode?: number;
+}
+import { Team } from '@microsoft/microsoft-graph-types';
+
 class DelegatedAuthenticationProvider implements AuthenticationProvider {
   constructor(private accessToken: string) {}
 
@@ -43,9 +48,9 @@ export async function POST(request: NextRequest) {
         .api('/me/joinedTeams')
         .get();
       
-      existingTeam = joinedTeams.value.find((team: any) => 
+      existingTeam = joinedTeams.value.find((team: Team) => 
         team.displayName === teamName || 
-        team.displayName.toLowerCase() === teamName.toLowerCase()
+        team.displayName?.toLowerCase() === teamName.toLowerCase()
       );
       
       if (existingTeam) {
@@ -134,11 +139,12 @@ export async function POST(request: NextRequest) {
         teamName: teamName,
       });
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Team creation error:', error);
       
       // If team creation fails, it might be because the team already exists
-      if (error.statusCode === 409 || error.message?.includes('already exists') || error.message?.includes('conflict')) {
+      const graphError = error as GraphError;
+      if (graphError.statusCode === 409 || graphError.message?.includes('already exists') || graphError.message?.includes('conflict')) {
         console.log('Team might already exist, trying to find it...');
         
         // Try to find the existing team
@@ -147,9 +153,9 @@ export async function POST(request: NextRequest) {
             .api('/me/joinedTeams')
             .get();
             
-          const existingTeam = teams.value.find((team: any) => 
+          const existingTeam = teams.value.find((team: Team) => 
             team.displayName === teamName || 
-            team.displayName.toLowerCase() === teamName.toLowerCase()
+            team.displayName?.toLowerCase() === teamName.toLowerCase()
           );
           
           if (existingTeam) {
@@ -158,8 +164,9 @@ export async function POST(request: NextRequest) {
           } else {
             throw new Error(`Team "${teamName}" might already exist but cannot be found`);
           }
-        } catch (findError) {
-          throw new Error(`Team creation failed and could not find existing team: ${error.message}`);
+        } catch {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          throw new Error(`Team creation failed and could not find existing team: ${errorMessage}`);
         }
       } else {
         throw error;

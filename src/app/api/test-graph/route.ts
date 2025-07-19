@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { AuthenticationProvider } from '@microsoft/microsoft-graph-client';
+import { User } from '@microsoft/microsoft-graph-types';
 
 class DelegatedAuthenticationProvider implements AuthenticationProvider {
   constructor(private accessToken: string) {}
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     // Test 1: Simple user info
     console.log('Test 1: Getting user info...');
-    const userInfo = await graphClient.api('/me').get();
+    const userInfo: User = await graphClient.api('/me').get();
     console.log('✅ User info retrieved:', userInfo.displayName);
 
     // Test 2: Simple connectivity test (no teams access needed)
@@ -42,14 +43,16 @@ export async function POST(request: NextRequest) {
       message: 'Graph connectivity test successful - basic permissions only'
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Graph connectivity test failed:', error);
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const statusCode = (error as { statusCode?: number }).statusCode || -1;
     return NextResponse.json(
       { 
         error: 'Graph connectivity test failed',
-        details: error.message,
-        statusCode: error.statusCode || -1
+        details: errorMessage,
+        statusCode
       },
       { status: 500 }
     );

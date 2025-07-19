@@ -48,7 +48,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
             Accès réseau externe détecté
           </h2>
           <p className="text-gray-600 mb-4">
-            L'authentification Microsoft 365 nécessite HTTPS pour l'accès externe. L'API Web Crypto n'est pas disponible via HTTP.
+            L&apos;authentification Microsoft 365 nécessite HTTPS pour l&apos;accès externe. L&apos;API Web Crypto n&apos;est pas disponible via HTTP.
           </p>
           
           <div className="bg-blue-50 border border-blue-200 rounded p-4 text-sm text-blue-800 mb-4">
@@ -74,8 +74,8 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
             <ol className="list-decimal list-inside space-y-1 text-left">
               <li>Ouvrez un nouveau terminal</li>
               <li>Exécutez : <code className="bg-gray-200 px-1 rounded">npx ngrok http 3000</code></li>
-              <li>Copiez l'URL HTTPS fournie (ex: https://abc123.ngrok.io)</li>
-              <li>Accédez à cette URL depuis n'importe où</li>
+              <li>Copiez l&apos;URL HTTPS fournie (ex: https://abc123.ngrok.io)</li>
+              <li>Accédez à cette URL depuis n&apos;importe où</li>
             </ol>
           </div>
           

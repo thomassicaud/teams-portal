@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
           .api(`/teams/${teamId}`)
           .get();
         console.log(`Team found: ${team.displayName}`);
-      } catch (teamError) {
+      } catch {
         console.log(`Team not found via /teams endpoint, trying /groups...`);
         
         const group = await graphClient
@@ -88,11 +88,14 @@ export async function POST(request: NextRequest) {
         fileSize: imageFile.size,
       });
 
-    } catch (uploadError: any) {
+    } catch (uploadError: unknown) {
       console.error('Error uploading team icon:', uploadError);
       
+      const errorMessage = uploadError instanceof Error ? uploadError.message : 'Unknown error';
+      const statusCode = (uploadError as { statusCode?: number }).statusCode;
+      
       // Gestion spécifique des erreurs Microsoft Graph
-      if (uploadError.statusCode === 404) {
+      if (statusCode === 404) {
         return NextResponse.json(
           { 
             error: 'Équipe non trouvée. Assurez-vous que l\'équipe existe et est complètement provisionnée.',
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (uploadError.statusCode === 403) {
+      if (statusCode === 403) {
         return NextResponse.json(
           { 
             error: 'Permissions insuffisantes pour modifier l\'icône de l\'équipe',
@@ -112,7 +115,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (uploadError.statusCode === 413) {
+      if (statusCode === 413) {
         return NextResponse.json(
           { 
             error: 'Fichier trop volumineux',
@@ -126,19 +129,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Échec de l\'upload de l\'icône',
-          details: uploadError.message || 'Erreur inconnue lors de l\'upload'
+          details: errorMessage
         },
         { status: 500 }
       );
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in upload-icon route:', error);
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { 
         error: 'Erreur serveur lors de l\'upload de l\'icône',
-        details: error.message || 'Erreur inconnue'
+        details: errorMessage
       },
       { status: 500 }
     );
