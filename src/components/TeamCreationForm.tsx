@@ -264,7 +264,13 @@ export function TeamCreationForm() {
 
   // Fonction pour upload de l'icône d'équipe
   const uploadTeamImage = async (teamId: string, imageFile: File) => {
-    if (!account) return;
+    if (!account) {
+      console.error('No account available for image upload');
+      return;
+    }
+
+    console.log('Starting image upload for team:', teamId);
+    console.log('Image file:', imageFile.name, imageFile.size, imageFile.type);
 
     setImageUploading(true);
     try {
@@ -282,11 +288,15 @@ export function TeamCreationForm() {
       const authResult = await msalInstance.acquireTokenSilent(tokenRequest);
       const accessToken = authResult.accessToken;
 
+      console.log('Access token acquired for image upload');
+
       // Préparer FormData pour l'upload
       const formData = new FormData();
       formData.append('teamId', teamId);
       formData.append('accessToken', accessToken);
       formData.append('image', imageFile);
+
+      console.log('Sending upload request to /api/teams/upload-icon');
 
       const response = await fetch('/api/teams/upload-icon', {
         method: 'POST',
@@ -294,6 +304,7 @@ export function TeamCreationForm() {
       });
 
       const result = await response.json();
+      console.log('Upload response:', result);
 
       if (!response.ok) {
         throw new Error(result.error || 'Erreur lors de l\'upload de l\'icône');

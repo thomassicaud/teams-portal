@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { AuthenticationProvider } from '@microsoft/microsoft-graph-client';
+import sharp from 'sharp';
 
 class DelegatedAuthenticationProvider implements AuthenticationProvider {
   constructor(private accessToken: string) {}
@@ -48,7 +49,33 @@ export async function POST(request: NextRequest) {
 
     // Convertir le fichier en buffer
     const arrayBuffer = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    let buffer = Buffer.from(arrayBuffer);
+
+    // Traiter l'image : recadrer en carré et redimensionner à 648x648
+    console.log(`Processing image: original size ${buffer.length} bytes`);
+
+    try {
+      const image = sharp(buffer);
+      const metadata = await image.metadata();
+
+      console.log(`Image dimensions: ${metadata.width}x${metadata.height}`);
+
+      // Recadrer au format carré (prendre la plus petite dimension)
+      const size = Math.min(metadata.width || 0, metadata.height || 0);
+
+      buffer = await image
+        .resize(648, 648, {
+          fit: 'cover', // Recadre automatiquement au centre
+          position: 'center'
+        })
+        .jpeg({ quality: 90 }) // Convertir en JPEG pour réduire la taille
+        .toBuffer();
+
+      console.log(`Image processed: ${buffer.length} bytes, 648x648px`);
+    } catch (processError) {
+      console.warn('Image processing failed, using original:', processError);
+      // En cas d'erreur, on utilise l'image originale
+    }
 
     try {
       // Vérifier d'abord que l'équipe existe
@@ -71,13 +98,12 @@ export async function POST(request: NextRequest) {
       // Upload de l'icône via Microsoft Graph
       // Utiliser l'endpoint PUT avec Content-Type approprié
       console.log(`Uploading photo for team/group: ${teamId}, size: ${buffer.length} bytes`);
-      
-      const response = await graphClient
+
+      await graphClient
         .api(`/groups/${teamId}/photo/$value`)
-        .header('Content-Type', imageFile.type)
+        .header('Content-Type', 'image/jpeg') // Force JPEG après traitement
         .put(buffer);
 
-      console.log(`Team icon upload response:`, response);
       console.log(`Team icon uploaded successfully for team: ${teamId}`);
 
       return NextResponse.json({
