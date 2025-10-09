@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Convertir le fichier en buffer
     const arrayBuffer = await imageFile.arrayBuffer();
-    let buffer = Buffer.from(arrayBuffer);
+    let buffer: Buffer = Buffer.from(arrayBuffer);
 
     // Traiter l'image : recadrer en carré et redimensionner à 648x648
     console.log(`Processing image: original size ${buffer.length} bytes`);
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
       console.log(`Image dimensions: ${metadata.width}x${metadata.height}`);
 
-      buffer = await image
+      const processedBuffer = await image
         .resize(648, 648, {
           fit: 'cover', // Recadre automatiquement au centre
           position: 'center'
@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
         .jpeg({ quality: 90 }) // Convertir en JPEG pour réduire la taille
         .toBuffer();
 
+      buffer = processedBuffer;
       console.log(`Image processed: ${buffer.length} bytes, 648x648px`);
     } catch (processError) {
       console.warn('Image processing failed, using original:', processError);
