@@ -51,12 +51,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (typeof window === 'undefined' || typeof document === 'undefined' || !window.crypto) {
         throw new Error('Login can only be performed in browser environment with crypto support');
       }
-      
+
       const msalInstance = getMsalInstance();
-      // Try with minimal permissions first to avoid admin consent
+      // Login with all required permissions since admin consent has been granted
       const response: AuthenticationResult = await msalInstance.loginPopup({
-        scopes: ['User.Read', 'Files.ReadWrite.All'],
-        prompt: 'consent',
+        scopes: [
+          'User.Read',
+          'User.ReadBasic.All',
+          'Group.ReadWrite.All',
+          'Group.Read.All',
+          'Team.Create',
+          'Team.ReadBasic.All',
+          'Channel.Create',
+          'TeamMember.ReadWrite.All',
+          'Files.ReadWrite.All',
+          'Sites.ReadWrite.All',
+        ],
+        prompt: 'select_account', // Let users select their account without forcing consent
       });
       setAccount(response.account);
     } catch (error) {
