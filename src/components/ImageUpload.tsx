@@ -103,9 +103,10 @@ export function ImageUpload({ onImageSelect }: ImageUploadProps) {
         // Prévisualisation de l'image
         <div className="relative">
           <div className="w-32 h-32 mx-auto bg-white border-2 border-gray-300 rounded-lg overflow-hidden shadow-sm">
-            <img 
-              src={preview} 
-              alt="Prévisualisation de l&apos;icône" 
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={preview}
+              alt="Prévisualisation de l&apos;icône"
               className="w-full h-full object-cover"
             />
           </div>

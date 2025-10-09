@@ -60,9 +60,6 @@ export async function POST(request: NextRequest) {
 
       console.log(`Image dimensions: ${metadata.width}x${metadata.height}`);
 
-      // Recadrer au format carré (prendre la plus petite dimension)
-      const size = Math.min(metadata.width || 0, metadata.height || 0);
-
       buffer = await image
         .resize(648, 648, {
           fit: 'cover', // Recadre automatiquement au centre
