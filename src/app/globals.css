@@ -80,3 +80,185 @@ body {
 * {
   border-color: hsl(var(--border));
 }
+
+/* ========================================
+   Sonner Toast Styles - Nuxt UI Inspired
+   ======================================== */
+
+/* Toast container styles */
+[data-sonner-toaster] {
+  --normal-bg: white;
+  --normal-border: #e5e7eb;
+  --normal-text: #111827;
+  --success-bg: #10b981;
+  --success-border: #059669;
+  --error-bg: #ef4444;
+  --error-border: #dc2626;
+  --warning-bg: #f59e0b;
+  --warning-border: #d97706;
+  --info-bg: #3b82f6;
+  --info-border: #2563eb;
+}
+
+/* Individual toast styling */
+[data-sonner-toast] {
+  padding: 16px;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  min-height: 64px;
+}
+
+/* Success toast */
+[data-sonner-toast][data-type="success"] {
+  background-color: var(--success-bg) !important;
+  color: white !important;
+  border: 2px solid var(--success-border) !important;
+}
+
+/* Error toast */
+[data-sonner-toast][data-type="error"] {
+  background-color: var(--error-bg) !important;
+  color: white !important;
+  border: 2px solid var(--error-border) !important;
+}
+
+/* Warning toast */
+[data-sonner-toast][data-type="warning"] {
+  background-color: var(--warning-bg) !important;
+  color: white !important;
+  border: 2px solid var(--warning-border) !important;
+}
+
+/* Info toast */
+[data-sonner-toast][data-type="info"] {
+  background-color: var(--info-bg) !important;
+  color: white !important;
+  border: 2px solid var(--info-border) !important;
+}
+
+/* Loading toast */
+[data-sonner-toast][data-type="loading"] {
+  background-color: #6366f1 !important;
+  color: white !important;
+  border: 2px solid #4f46e5 !important;
+}
+
+/* Toast title */
+[data-sonner-toast] [data-title] {
+  font-weight: 600;
+  font-size: 15px;
+  color: white !important;
+}
+
+/* Toast description */
+[data-sonner-toast] [data-description] {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* Toast icon */
+[data-sonner-toast] [data-icon] {
+  color: white !important;
+  margin-right: 4px;
+}
+
+/* Progress bar at the bottom */
+[data-sonner-toast] [data-content]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  transform-origin: left;
+  animation: toast-progress linear forwards;
+}
+
+/* Success progress bar */
+[data-sonner-toast][data-type="success"] [data-content]::after {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Error progress bar */
+[data-sonner-toast][data-type="error"] [data-content]::after {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Warning progress bar */
+[data-sonner-toast][data-type="warning"] [data-content]::after {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Info progress bar */
+[data-sonner-toast][data-type="info"] [data-content]::after {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Loading progress bar (no countdown) */
+[data-sonner-toast][data-type="loading"] [data-content]::after {
+  display: none;
+}
+
+/* Progress bar animation */
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Set animation duration dynamically */
+[data-sonner-toast][data-duration="2000"] [data-content]::after {
+  animation-duration: 2000ms;
+}
+
+[data-sonner-toast][data-duration="3000"] [data-content]::after {
+  animation-duration: 3000ms;
+}
+
+[data-sonner-toast][data-duration="4000"] [data-content]::after {
+  animation-duration: 4000ms;
+}
+
+[data-sonner-toast][data-duration="5000"] [data-content]::after {
+  animation-duration: 5000ms;
+}
+
+[data-sonner-toast][data-duration="6000"] [data-content]::after {
+  animation-duration: 6000ms;
+}
+
+/* Hover effect - pause animation */
+[data-sonner-toast]:hover [data-content]::after {
+  animation-play-state: paused;
+}
+
+/* Close button */
+[data-sonner-toast] [data-close-button] {
+  color: white !important;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  opacity: 1;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  [data-sonner-toaster] {
+    --success-bg: #059669;
+    --error-bg: #dc2626;
+    --warning-bg: #d97706;
+    --info-bg: #2563eb;
+  }
+}

@@ -19,22 +19,28 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      richColors
+      duration={4000}
       icons={{
-        success: <CircleCheck className="h-4 w-4" />,
-        info: <Info className="h-4 w-4" />,
-        warning: <TriangleAlert className="h-4 w-4" />,
-        error: <OctagonX className="h-4 w-4" />,
-        loading: <LoaderCircle className="h-4 w-4 animate-spin" />,
+        success: <CircleCheck className="h-5 w-5" />,
+        info: <Info className="h-5 w-5" />,
+        warning: <TriangleAlert className="h-5 w-5" />,
+        error: <OctagonX className="h-5 w-5" />,
+        loading: <LoaderCircle className="h-5 w-5 animate-spin" />,
       }}
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
+            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-0 group-[.toaster]:shadow-xl group-[.toaster]:rounded-xl",
+          description: "group-[.toast]:text-white group-[.toast]:opacity-90",
           actionButton:
-            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+            "group-[.toast]:bg-white group-[.toast]:text-foreground group-[.toast]:hover:bg-white/90",
           cancelButton:
-            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+            "group-[.toast]:bg-white/20 group-[.toast]:text-white group-[.toast]:hover:bg-white/30",
+          success: "group-[.toast]:bg-emerald-500 group-[.toast]:text-white",
+          error: "group-[.toast]:bg-red-500 group-[.toast]:text-white",
+          warning: "group-[.toast]:bg-amber-500 group-[.toast]:text-white",
+          info: "group-[.toast]:bg-blue-500 group-[.toast]:text-white",
         },
       }}
       {...props}
