@@ -19,6 +19,7 @@ interface TeamMember {
   id: string;
   email: string;
   displayName: string;
+  photoUrl?: string;
 }
 
 interface TeamFormData {
@@ -45,12 +46,32 @@ export function TeamCreationForm() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
 
+  // Helper function to fetch user photo
+  const getUserPhoto = async (userId: string): Promise<string | undefined> => {
+    try {
+      const graphClient = createGraphClient(account!);
+      const photoBlob = await graphClient
+        .api(`/users/${userId}/photo/$value`)
+        .get();
+
+      // Convert blob to base64
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(photoBlob);
+      });
+    } catch {
+      // User might not have a photo, that's okay
+      return undefined;
+    }
+  };
+
   const addMember = async () => {
     if (!memberEmail.trim() || !account) return;
 
     try {
       const graphClient = createGraphClient(account);
-      
+
       // Search for user by email
       const users = await graphClient
         .api('/users')
@@ -65,10 +86,15 @@ export function TeamCreationForm() {
       }
 
       const user = users.value[0];
+
+      // Fetch user photo
+      const photoUrl = await getUserPhoto(user.id);
+
       const newMember: TeamMember = {
         id: user.id,
         email: user.mail || user.userPrincipalName,
         displayName: user.displayName,
+        photoUrl,
       };
 
       if (formData.members.some(m => m.id === newMember.id)) {
@@ -83,10 +109,34 @@ export function TeamCreationForm() {
         members: [...prev.members, newMember],
       }));
       setMemberEmail('');
-      toast.success('Membre ajouté', {
-        description: `${newMember.displayName} a été ajouté à l'équipe`,
-        duration: 3000,
-      });
+
+      // Custom toast with user photo
+      toast.custom((t) => (
+        <div className="bg-emerald-500 text-white p-4 rounded-xl shadow-xl border-2 border-emerald-600 flex items-center gap-3 min-w-[300px]">
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={newMember.displayName}
+              className="w-12 h-12 rounded-full object-cover border-2 border-white"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center text-white font-semibold text-lg border-2 border-white">
+              {newMember.displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="flex-1">
+            <div className="font-semibold text-white">Membre ajouté</div>
+            <div className="text-sm text-white opacity-95">{newMember.displayName} a été ajouté à l&apos;équipe</div>
+          </div>
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ), { duration: 3000 });
     } catch (error) {
       console.error('Error finding user:', error);
       toast.error('Erreur de recherche', {
@@ -497,17 +547,32 @@ export function TeamCreationForm() {
               <CardContent>
                 <div className="space-y-2">
                   {formData.members.map((member) => (
-                    <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{member.displayName}</span>
-                        <span className="text-sm text-muted-foreground">{member.email}</span>
+                    <div key={member.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      {/* User photo */}
+                      {member.photoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={member.photoUrl}
+                          alt={member.displayName}
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold flex-shrink-0">
+                          {member.displayName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      {/* Member info */}
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <span className="font-medium truncate">{member.displayName}</span>
+                        <span className="text-sm text-muted-foreground truncate">{member.email}</span>
                       </div>
+                      {/* Remove button */}
                       <Button
                         type="button"
                         onClick={() => removeMember(member.id)}
                         variant="ghost"
                         size="sm"
-                        className="gap-2 text-destructive hover:text-destructive"
+                        className="gap-2 text-destructive hover:text-destructive flex-shrink-0"
                       >
                         <X className="h-4 w-4" />
                         Supprimer
