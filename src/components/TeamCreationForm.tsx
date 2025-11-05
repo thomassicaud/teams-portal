@@ -247,15 +247,17 @@ export function TeamCreationForm() {
     setStatus('idle');
     setMessage('');
 
-    toast.loading('Création de l\'équipe en cours...', {
-      id: 'create-team',
+    // Étape 1: Authentification
+    toast.loading('Authentification en cours...', {
+      id: 'auth-step',
+      description: 'Acquisition du token d\'accès Microsoft',
     });
 
     try {
       // Get fresh access token
       const graphClient = createGraphClient(account);
       await graphClient.api('/me').get(); // This will trigger token acquisition
-      
+
       // Extract the token from the auth provider
       const tokenRequest = {
         scopes: [
@@ -271,6 +273,18 @@ export function TeamCreationForm() {
       const msalInstance = getMsalInstance();
       const authResult = await msalInstance.acquireTokenSilent(tokenRequest);
       const accessToken = authResult.accessToken;
+
+      toast.success('Authentification réussie', {
+        id: 'auth-step',
+        description: 'Token d\'accès obtenu',
+        duration: 2000,
+      });
+
+      // Étape 2: Création de l'équipe
+      toast.loading('Création de l\'équipe...', {
+        id: 'create-step',
+        description: `Création de "${formData.teamName}" avec le propriétaire`,
+      });
 
       const response = await fetch('/api/teams/create', {
         method: 'POST',
@@ -294,7 +308,7 @@ export function TeamCreationForm() {
         setStatus('pending');
         setMessage(result.message);
         toast.info('Équipe en provisioning', {
-          id: 'create-team',
+          id: 'create-step',
           description: 'L\'équipe est en cours de création par Microsoft (2-3 min)',
           duration: 5000,
         });
@@ -302,15 +316,39 @@ export function TeamCreationForm() {
         setCreatedTeamId(result.teamId);
         setStatus('success');
         setMessage(result.message);
+
+        // Afficher le résumé de création
+        const channelsInfo = result.channelsCreated ? `${result.channelsCreated} canaux créés` : '';
+        const membersInfo = result.membersAdded ? `${result.membersAdded} membres ajoutés` : '';
+        const description = [channelsInfo, membersInfo].filter(Boolean).join(', ') || 'Équipe initialisée';
+
         toast.success('Équipe créée avec succès !', {
-          id: 'create-team',
-          description: `L'équipe "${formData.teamName}" a été créée`,
+          id: 'create-step',
+          description,
           duration: 4000,
         });
 
-        // Upload de l'icône si fournie
+        // Étape 3: Upload de l'icône si fournie
         if (selectedImage) {
-          await uploadTeamImage(result.teamId, selectedImage);
+          toast.loading('Upload de l\'icône...', {
+            id: 'icon-upload',
+            description: 'Personnalisation de l\'icône de l\'équipe',
+          });
+
+          try {
+            await uploadTeamImage(result.teamId, selectedImage);
+            toast.success('Icône uploadée', {
+              id: 'icon-upload',
+              description: 'L\'icône de l\'équipe a été mise à jour',
+              duration: 3000,
+            });
+          } catch {
+            toast.warning('Icône non uploadée', {
+              id: 'icon-upload',
+              description: 'L\'équipe a été créée mais l\'icône n\'a pas pu être uploadée',
+              duration: 3000,
+            });
+          }
         }
       }
     } catch (error) {
@@ -319,10 +357,12 @@ export function TeamCreationForm() {
       setMessage(errorMsg);
       setStatus('error');
       toast.error('Échec de création', {
-        id: 'create-team',
+        id: 'create-step',
         description: errorMsg,
         duration: 5000,
       });
+      toast.dismiss('auth-step');
+      toast.dismiss('icon-upload');
     } finally {
       setLoading(false);
     }
@@ -340,9 +380,10 @@ export function TeamCreationForm() {
     setStatus('idle');
     setMessage('');
 
-    toast.loading('Finalisation en cours...', {
-      id: 'finalize-team',
-      description: 'Ajout des canaux et membres',
+    // Étape 1: Authentification pour finalisation
+    toast.loading('Authentification en cours...', {
+      id: 'finalize-auth',
+      description: 'Acquisition des permissions pour finaliser l\'équipe',
     });
 
     try {
@@ -367,6 +408,19 @@ export function TeamCreationForm() {
       const authResult = await msalInstance.acquireTokenSilent(tokenRequest);
       const accessToken = authResult.accessToken;
 
+      toast.success('Authentification réussie', {
+        id: 'finalize-auth',
+        description: 'Permissions obtenues',
+        duration: 2000,
+      });
+
+      // Étape 2: Recherche de l'équipe et ajout des canaux/membres
+      const memberCount = formData.members.length;
+      toast.loading('Finalisation en cours...', {
+        id: 'finalize-step',
+        description: `Ajout des canaux et ${memberCount} membre${memberCount > 1 ? 's' : ''}`,
+      });
+
       const response = await fetch('/api/teams/finalize', {
         method: 'POST',
         headers: {
@@ -389,15 +443,38 @@ export function TeamCreationForm() {
       setPendingTeamName(null);
       setStatus('success');
       setMessage(result.message);
-      toast.success('Équipe finalisée !', {
-        id: 'finalize-team',
-        description: `${result.channelsCreated || 0} canaux et ${result.membersAdded || 0} membres ajoutés`,
+
+      // Afficher le résumé détaillé
+      const channelsCreated = result.channelsCreated || 0;
+      const membersAdded = result.membersAdded || 0;
+
+      toast.success('Équipe finalisée avec succès !', {
+        id: 'finalize-step',
+        description: `${channelsCreated} canaux et ${membersAdded} membres ajoutés`,
         duration: 5000,
       });
 
-      // Upload de l'icône si fournie
+      // Étape 3: Upload de l'icône si fournie
       if (selectedImage) {
-        await uploadTeamImage(result.teamId, selectedImage);
+        toast.loading('Upload de l\'icône...', {
+          id: 'finalize-icon',
+          description: 'Personnalisation de l\'icône de l\'équipe',
+        });
+
+        try {
+          await uploadTeamImage(result.teamId, selectedImage);
+          toast.success('Icône uploadée', {
+            id: 'finalize-icon',
+            description: 'L\'icône de l\'équipe a été mise à jour',
+            duration: 3000,
+          });
+        } catch {
+          toast.warning('Icône non uploadée', {
+            id: 'finalize-icon',
+            description: 'L\'équipe a été finalisée mais l\'icône n\'a pas pu être uploadée',
+            duration: 3000,
+          });
+        }
       }
     } catch (error) {
       console.error('Error finalizing team:', error);
@@ -405,10 +482,12 @@ export function TeamCreationForm() {
       setMessage(errorMsg);
       setStatus('error');
       toast.error('Échec de finalisation', {
-        id: 'finalize-team',
+        id: 'finalize-step',
         description: errorMsg,
         duration: 5000,
       });
+      toast.dismiss('finalize-auth');
+      toast.dismiss('finalize-icon');
     } finally {
       setLoading(false);
     }
