@@ -29,6 +29,15 @@ interface TeamFormData {
   members: TeamMember[];
 }
 
+// Liste des canaux par défaut créés
+const DEFAULT_CHANNELS = [
+  { name: 'Général', description: 'Canal général' },
+  { name: '1-ADMINISTRATIF', description: 'Sujets administratifs' },
+  { name: '2-OPÉRATIONNEL', description: 'Activités opérationnelles' },
+  { name: '3-INFORMATIQUE', description: 'Sujets informatiques' },
+  { name: '4-DOSSIERS_DE_SUBVENTIONS', description: 'Dossiers de subventions' },
+];
+
 export function TeamCreationForm() {
   const { account } = useAuth();
   const [formData, setFormData] = useState<TeamFormData>({
@@ -317,38 +326,64 @@ export function TeamCreationForm() {
         setStatus('success');
         setMessage(result.message);
 
-        // Afficher le résumé de création
-        const channelsInfo = result.channelsCreated ? `${result.channelsCreated} canaux créés` : '';
-        const membersInfo = result.membersAdded ? `${result.membersAdded} membres ajoutés` : '';
-        const description = [channelsInfo, membersInfo].filter(Boolean).join(', ') || 'Équipe initialisée';
-
-        toast.success('Équipe créée avec succès !', {
+        toast.success('Équipe créée !', {
           id: 'create-step',
-          description,
-          duration: 4000,
+          description: `Équipe "${formData.teamName}" initialisée`,
+          duration: 3000,
         });
 
-        // Étape 3: Upload de l'icône si fournie
-        if (selectedImage) {
-          toast.loading('Upload de l\'icône...', {
-            id: 'icon-upload',
-            description: 'Personnalisation de l\'icône de l\'équipe',
-          });
-
-          try {
-            await uploadTeamImage(result.teamId, selectedImage);
-            toast.success('Icône uploadée', {
-              id: 'icon-upload',
-              description: 'L\'icône de l\'équipe a été mise à jour',
-              duration: 3000,
-            });
-          } catch {
-            toast.warning('Icône non uploadée', {
-              id: 'icon-upload',
-              description: 'L\'équipe a été créée mais l\'icône n\'a pas pu être uploadée',
-              duration: 3000,
-            });
+        // Étape 3: Afficher les canaux créés
+        if (result.channelsCreated && result.channelsCreated > 0) {
+          // Simuler l'affichage progressif des canaux créés
+          for (let i = 0; i < Math.min(DEFAULT_CHANNELS.length, result.channelsCreated); i++) {
+            const channel = DEFAULT_CHANNELS[i];
+            setTimeout(() => {
+              toast.success(`Canal créé: ${channel.name}`, {
+                description: channel.description,
+                duration: 2500,
+              });
+            }, i * 300); // 300ms entre chaque canal
           }
+        }
+
+        // Étape 4: Afficher les membres ajoutés
+        if (formData.members.length > 0 && result.membersAdded) {
+          const startDelay = (result.channelsCreated || 0) * 300;
+          for (let i = 0; i < Math.min(formData.members.length, result.membersAdded); i++) {
+            const member = formData.members[i];
+            setTimeout(() => {
+              toast.success(`Membre ajouté: ${member.displayName}`, {
+                description: member.email,
+                duration: 2500,
+              });
+            }, startDelay + i * 300);
+          }
+        }
+
+        // Étape 5: Upload de l'icône si fournie
+        const totalDelay = ((result.channelsCreated || 0) + (result.membersAdded || 0)) * 300;
+        if (selectedImage) {
+          setTimeout(async () => {
+            toast.loading('Upload de l\'icône...', {
+              id: 'icon-upload',
+              description: 'Personnalisation de l\'icône de l\'équipe',
+            });
+
+            try {
+              await uploadTeamImage(result.teamId, selectedImage);
+              toast.success('Icône uploadée', {
+                id: 'icon-upload',
+                description: 'L\'icône de l\'équipe a été mise à jour',
+                duration: 3000,
+              });
+            } catch {
+              toast.warning('Icône non uploadée', {
+                id: 'icon-upload',
+                description: 'L\'équipe a été créée mais l\'icône n\'a pas pu être uploadée',
+                duration: 3000,
+              });
+            }
+          }, totalDelay);
         }
       }
     } catch (error) {
@@ -444,37 +479,67 @@ export function TeamCreationForm() {
       setStatus('success');
       setMessage(result.message);
 
-      // Afficher le résumé détaillé
       const channelsCreated = result.channelsCreated || 0;
       const membersAdded = result.membersAdded || 0;
 
-      toast.success('Équipe finalisée avec succès !', {
+      toast.success('Finalisation terminée !', {
         id: 'finalize-step',
-        description: `${channelsCreated} canaux et ${membersAdded} membres ajoutés`,
-        duration: 5000,
+        description: `Équipe "${pendingTeamName}" finalisée`,
+        duration: 3000,
       });
 
-      // Étape 3: Upload de l'icône si fournie
-      if (selectedImage) {
-        toast.loading('Upload de l\'icône...', {
-          id: 'finalize-icon',
-          description: 'Personnalisation de l\'icône de l\'équipe',
-        });
-
-        try {
-          await uploadTeamImage(result.teamId, selectedImage);
-          toast.success('Icône uploadée', {
-            id: 'finalize-icon',
-            description: 'L\'icône de l\'équipe a été mise à jour',
-            duration: 3000,
-          });
-        } catch {
-          toast.warning('Icône non uploadée', {
-            id: 'finalize-icon',
-            description: 'L\'équipe a été finalisée mais l\'icône n\'a pas pu être uploadée',
-            duration: 3000,
-          });
+      // Étape 3: Afficher les canaux créés
+      if (channelsCreated > 0) {
+        // Simuler l'affichage progressif des canaux créés
+        for (let i = 0; i < Math.min(DEFAULT_CHANNELS.length, channelsCreated); i++) {
+          const channel = DEFAULT_CHANNELS[i];
+          setTimeout(() => {
+            toast.success(`Canal créé: ${channel.name}`, {
+              description: channel.description,
+              duration: 2500,
+            });
+          }, i * 300); // 300ms entre chaque canal
         }
+      }
+
+      // Étape 4: Afficher les membres ajoutés
+      if (formData.members.length > 0 && membersAdded > 0) {
+        const startDelay = channelsCreated * 300;
+        for (let i = 0; i < Math.min(formData.members.length, membersAdded); i++) {
+          const member = formData.members[i];
+          setTimeout(() => {
+            toast.success(`Membre ajouté: ${member.displayName}`, {
+              description: member.email,
+              duration: 2500,
+            });
+          }, startDelay + i * 300);
+        }
+      }
+
+      // Étape 5: Upload de l'icône si fournie
+      const totalDelay = (channelsCreated + membersAdded) * 300;
+      if (selectedImage) {
+        setTimeout(async () => {
+          toast.loading('Upload de l\'icône...', {
+            id: 'finalize-icon',
+            description: 'Personnalisation de l\'icône de l\'équipe',
+          });
+
+          try {
+            await uploadTeamImage(result.teamId, selectedImage);
+            toast.success('Icône uploadée', {
+              id: 'finalize-icon',
+              description: 'L\'icône de l\'équipe a été mise à jour',
+              duration: 3000,
+            });
+          } catch {
+            toast.warning('Icône non uploadée', {
+              id: 'finalize-icon',
+              description: 'L\'équipe a été finalisée mais l\'icône n\'a pas pu être uploadée',
+              duration: 3000,
+            });
+          }
+        }, totalDelay);
       }
     } catch (error) {
       console.error('Error finalizing team:', error);
