@@ -20,9 +20,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position="top-right"
-      visibleToasts={3}
+      visibleToasts={5}
       richColors
-      duration={4000}
+      duration={5000}
       icons={{
         success: <CircleCheck className="h-5 w-5" />,
         info: <Info className="h-5 w-5" />,
