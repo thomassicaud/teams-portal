@@ -146,7 +146,7 @@ export function TeamCreationForm() {
 
       // Custom toast with user photo - Nuxt UI style
       toast.custom((t) => (
-        <div className="bg-[#d1fae5] p-4 rounded-xl shadow-lg border border-[#6ee7b7] flex items-center gap-3 min-w-[300px]">
+        <div className="bg-[#d1fae5] p-4 rounded-xl shadow-lg flex items-center gap-3 min-w-[300px] relative overflow-hidden">
           {photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -169,6 +169,13 @@ export function TeamCreationForm() {
           >
             <X className="h-4 w-4" />
           </button>
+          {/* Progress bar timer */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-1 bg-[#059669] opacity-60 rounded-b-xl origin-left"
+            style={{
+              animation: 'shrink-width 3s linear forwards'
+            }}
+          />
         </div>
       ), { duration: 3000 });
     } catch (error) {

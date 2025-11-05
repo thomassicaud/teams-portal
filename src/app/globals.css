@@ -121,14 +121,12 @@ body {
   border-radius: 0.75rem !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   min-height: 64px !important;
-  border-width: 1px !important;
-  border-style: solid !important;
+  border: none !important;
 }
 
 /* Success toast */
 [data-sonner-toast][data-type="success"] {
   background-color: var(--success-bg) !important;
-  border-color: var(--success-border) !important;
 }
 
 [data-sonner-toast][data-type="success"] [data-title],
@@ -143,7 +141,6 @@ body {
 /* Error toast */
 [data-sonner-toast][data-type="error"] {
   background-color: var(--error-bg) !important;
-  border-color: var(--error-border) !important;
 }
 
 [data-sonner-toast][data-type="error"] [data-title],
@@ -158,7 +155,6 @@ body {
 /* Warning toast */
 [data-sonner-toast][data-type="warning"] {
   background-color: var(--warning-bg) !important;
-  border-color: var(--warning-border) !important;
 }
 
 [data-sonner-toast][data-type="warning"] [data-title],
@@ -173,7 +169,6 @@ body {
 /* Info toast */
 [data-sonner-toast][data-type="info"] {
   background-color: var(--info-bg) !important;
-  border-color: var(--info-border) !important;
 }
 
 [data-sonner-toast][data-type="info"] [data-title],
@@ -188,7 +183,6 @@ body {
 /* Loading toast - neutral gray */
 [data-sonner-toast][data-type="loading"] {
   background-color: #f3f4f6 !important;
-  border-color: #d1d5db !important;
 }
 
 [data-sonner-toast][data-type="loading"] [data-title],
@@ -221,14 +215,14 @@ body {
   flex-shrink: 0 !important;
 }
 
-/* Progress bar at the bottom - Nuxt UI style */
+/* Progress bar at the bottom - Timer countdown bar */
 [data-sonner-toast] [data-content]::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 4px;
   border-bottom-left-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
   transform-origin: left;
@@ -238,25 +232,25 @@ body {
 /* Success progress bar */
 [data-sonner-toast][data-type="success"] [data-content]::after {
   background: var(--success-icon);
-  opacity: 0.3;
+  opacity: 0.6;
 }
 
 /* Error progress bar */
 [data-sonner-toast][data-type="error"] [data-content]::after {
   background: var(--error-icon);
-  opacity: 0.3;
+  opacity: 0.6;
 }
 
 /* Warning progress bar */
 [data-sonner-toast][data-type="warning"] [data-content]::after {
   background: var(--warning-icon);
-  opacity: 0.3;
+  opacity: 0.6;
 }
 
 /* Info progress bar */
 [data-sonner-toast][data-type="info"] [data-content]::after {
   background: var(--info-icon);
-  opacity: 0.3;
+  opacity: 0.6;
 }
 
 /* Loading progress bar (no countdown) */
@@ -266,6 +260,16 @@ body {
 
 /* Progress bar animation */
 @keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Progress bar animation for custom toasts */
+@keyframes shrink-width {
   from {
     transform: scaleX(1);
   }
@@ -357,7 +361,6 @@ body {
 
   [data-sonner-toast][data-type="loading"] {
     background-color: #374151 !important;
-    border-color: #6b7280 !important;
   }
 
   [data-sonner-toast][data-type="loading"] [data-title],
