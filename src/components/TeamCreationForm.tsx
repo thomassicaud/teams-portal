@@ -7,6 +7,12 @@ import { getMsalInstance } from '@/lib/auth-config';
 import { LoginButton } from './LoginButton';
 import { ValidationSection } from './ValidationSection';
 import { ImageUpload } from './ImageUpload';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { Search, Plus, Loader2, Users, CheckCircle2, Clock, X } from 'lucide-react';
 
 interface TeamMember {
   id: string;
@@ -321,26 +327,29 @@ export function TeamCreationForm() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">
-          Créer une nouvelle équipe Teams
-        </h2>
-        <LoginButton />
-      </div>
-
-      <div className="space-y-6">
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-start gap-4 flex-wrap">
+          <div>
+            <CardTitle className="text-2xl">Créer une nouvelle équipe Teams</CardTitle>
+            <CardDescription className="mt-2">
+              Remplissez le formulaire ci-dessous pour créer automatiquement une équipe avec sa structure complète
+            </CardDescription>
+          </div>
+          <LoginButton />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
         {/* Team Name */}
-        <div>
-          <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-2">
+          <label htmlFor="teamName" className="text-sm font-medium">
             Nom de l&apos;équipe *
           </label>
-          <input
+          <Input
             type="text"
             id="teamName"
             value={formData.teamName}
             onChange={(e) => setFormData(prev => ({ ...prev, teamName: e.target.value }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Entrez le nom de l'équipe"
           />
         </div>
@@ -352,150 +361,181 @@ export function TeamCreationForm() {
         />
 
         {/* Owner */}
-        <div>
-          <label htmlFor="ownerEmail" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-2">
+          <label htmlFor="ownerEmail" className="text-sm font-medium">
             Email du propriétaire *
           </label>
           <div className="flex gap-2">
-            <input
+            <Input
               type="email"
               id="ownerEmail"
               value={formData.ownerEmail}
               onChange={(e) => setFormData(prev => ({ ...prev, ownerEmail: e.target.value }))}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="proprietaire@example.com"
+              className="flex-1"
             />
-            <button
+            <Button
               type="button"
               onClick={searchOwner}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              variant="secondary"
+              className="gap-2"
             >
+              <Search className="h-4 w-4" />
               Rechercher
-            </button>
+            </Button>
           </div>
           {formData.ownerId && (
-            <p className="text-sm text-green-600 mt-1">✓ Propriétaire trouvé</p>
+            <div className="flex items-center gap-2 text-sm text-green-600">
+              <CheckCircle2 className="h-4 w-4" />
+              Propriétaire trouvé
+            </div>
           )}
         </div>
 
         {/* Members */}
-        <div>
-          <label htmlFor="memberEmail" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-3">
+          <label htmlFor="memberEmail" className="text-sm font-medium flex items-center gap-2">
+            <Users className="h-4 w-4" />
             Ajouter des membres
           </label>
-          <div className="flex gap-2 mb-3">
-            <input
+          <div className="flex gap-2">
+            <Input
               type="email"
               id="memberEmail"
               value={memberEmail}
               onChange={(e) => setMemberEmail(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="membre@example.com"
+              className="flex-1"
             />
-            <button
+            <Button
               type="button"
               onClick={addMember}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              variant="default"
+              className="gap-2"
             >
+              <Plus className="h-4 w-4" />
               Ajouter
-            </button>
+            </Button>
           </div>
 
           {formData.members.length > 0 && (
-            <div className="border border-gray-200 rounded-md p-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
-                Membres ajoutés ({formData.members.length})
-              </h4>
-              <div className="space-y-2">
-                {formData.members.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
-                    <div>
-                      <span className="font-medium">{member.displayName}</span>
-                      <span className="text-gray-600 ml-2">({member.email})</span>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Membres ajoutés ({formData.members.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {formData.members.map((member) => (
+                    <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{member.displayName}</span>
+                        <span className="text-sm text-muted-foreground">{member.email}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={() => removeMember(member.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 text-destructive hover:text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                        Supprimer
+                      </Button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeMember(member.id)}
-                      className="text-red-600 hover:text-red-800 text-sm"
-                    >
-                      Supprimer
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
 
         {/* Status Message */}
         {message && (
-          <div className={`p-3 rounded-md ${
-            status === 'success' ? 'bg-green-100 text-green-800' : 
-            status === 'error' ? 'bg-red-100 text-red-800' : 
-            status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-blue-100 text-blue-800'
-          }`}>
-            {message}
-          </div>
+          <Alert variant={status === 'error' ? 'destructive' : 'default'} className={
+            status === 'success' ? 'border-green-500 bg-green-50 text-green-800' :
+            status === 'pending' ? 'border-yellow-500 bg-yellow-50 text-yellow-800' :
+            ''
+          }>
+            <AlertDescription className="whitespace-pre-line">
+              {message}
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Pending Team Section */}
         {status === 'pending' && pendingTeamName && (
-          <div className="border border-yellow-300 rounded-md p-4 bg-yellow-50">
-            <h3 className="text-lg font-medium text-yellow-800 mb-3">
-              Équipe en cours de création
-            </h3>
-            <p className="text-yellow-700 mb-4">
-              L&apos;équipe &quot;<strong>{pendingTeamName}</strong>&quot; est en cours de provisioning par Microsoft Teams. 
-              Cela peut prendre quelques minutes.
-            </p>
-            <div className="space-y-3">
-              <div className="bg-yellow-100 border border-yellow-200 rounded p-3">
-                <p className="text-yellow-800 text-sm mb-2">
-                  <strong>Instructions :</strong>
-                </p>
-                <ol className="text-yellow-700 text-sm list-decimal list-inside space-y-1">
-                  <li>Attendez 2-3 minutes pour le provisioning</li>
-                  <li>Vérifiez que l&apos;équipe apparaît dans Microsoft Teams</li>
-                  <li>Cliquez sur &quot;Finaliser la configuration&quot; ci-dessous</li>
-                </ol>
-              </div>
-              <div className="flex gap-3">
-                <button
+          <Card className="border-yellow-500 bg-yellow-50/50">
+            <CardHeader>
+              <CardTitle className="text-yellow-800 flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Équipe en cours de création
+              </CardTitle>
+              <CardDescription className="text-yellow-700">
+                L&apos;équipe &quot;<strong>{pendingTeamName}</strong>&quot; est en cours de provisioning par Microsoft Teams.
+                Cela peut prendre quelques minutes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert className="bg-yellow-100 border-yellow-200">
+                <AlertDescription>
+                  <p className="font-semibold text-yellow-800 mb-2">Instructions :</p>
+                  <ol className="text-yellow-700 text-sm list-decimal list-inside space-y-1">
+                    <li>Attendez 2-3 minutes pour le provisioning</li>
+                    <li>Vérifiez que l&apos;équipe apparaît dans Microsoft Teams</li>
+                    <li>Cliquez sur &quot;Finaliser la configuration&quot; ci-dessous</li>
+                  </ol>
+                </AlertDescription>
+              </Alert>
+              <div className="flex gap-3 flex-wrap">
+                <Button
                   onClick={finalizeTeam}
                   disabled={loading || imageUploading}
-                  className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  variant="default"
+                  className="gap-2"
                 >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   {loading ? 'Vérification en cours...' : imageUploading ? 'Upload de l\'icône...' : 'Finaliser la configuration'}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => window.open('https://teams.microsoft.com', '_blank')}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  variant="secondary"
+                  className="gap-2"
                 >
                   Ouvrir Teams
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Create Button */}
         {status !== 'pending' && (
-          <button
-            onClick={createTeam}
-            disabled={loading || imageUploading || !formData.teamName.trim() || !formData.ownerId}
-            className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-          >
-            {loading ? 'Création en cours...' : imageUploading ? 'Upload de l\'icône...' : 'Créer l\'équipe Teams'}
-          </button>
+          <>
+            <Separator />
+            <Button
+              onClick={createTeam}
+              disabled={loading || imageUploading || !formData.teamName.trim() || !formData.ownerId}
+              className="w-full gap-2"
+              size="lg"
+            >
+              {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+              {loading ? 'Création en cours...' : imageUploading ? 'Upload de l\'icône...' : 'Créer l\'équipe Teams'}
+            </Button>
+          </>
         )}
 
         {/* Validation Section */}
         {createdTeamId && status === 'success' && (
-          <ValidationSection teamId={createdTeamId} />
+          <>
+            <Separator />
+            <ValidationSection teamId={createdTeamId} />
+          </>
         )}
 
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
