@@ -48,20 +48,54 @@ export function TeamCreationForm() {
 
   // Helper function to fetch user photo
   const getUserPhoto = async (userId: string): Promise<string | undefined> => {
-    try {
-      const graphClient = createGraphClient(account!);
-      const photoBlob = await graphClient
-        .api(`/users/${userId}/photo/$value`)
-        .get();
+    if (!account) return undefined;
 
-      // Convert blob to base64
-      return new Promise((resolve) => {
+    try {
+      console.log('Fetching photo for user:', userId);
+
+      // Get MSAL instance and access token
+      const msalInstance = getMsalInstance();
+      const request = {
+        scopes: ["User.ReadBasic.All", "User.Read"],
+        account: account,
+      };
+
+      const response = await msalInstance.acquireTokenSilent(request);
+
+      // Fetch photo directly using fetch API
+      const photoResponse = await fetch(
+        `https://graph.microsoft.com/v1.0/users/${userId}/photo/$value`,
+        {
+          headers: {
+            'Authorization': `Bearer ${response.accessToken}`,
+          },
+        }
+      );
+
+      if (!photoResponse.ok) {
+        console.log('No photo available for user:', userId);
+        return undefined;
+      }
+
+      // Convert response to blob then to base64
+      const photoBlob = await photoResponse.blob();
+      console.log('Photo blob received:', photoBlob.size, 'bytes');
+
+      return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          console.log('Photo converted to base64, length:', result.length);
+          resolve(result);
+        };
+        reader.onerror = (error) => {
+          console.error('Error reading blob:', error);
+          reject(error);
+        };
         reader.readAsDataURL(photoBlob);
       });
-    } catch {
-      // User might not have a photo, that's okay
+    } catch (error) {
+      console.log('Error fetching photo for user:', userId, error);
       return undefined;
     }
   };
@@ -110,28 +144,28 @@ export function TeamCreationForm() {
       }));
       setMemberEmail('');
 
-      // Custom toast with user photo
+      // Custom toast with user photo - Nuxt UI style
       toast.custom((t) => (
-        <div className="bg-emerald-500 text-white p-4 rounded-xl shadow-xl border-2 border-emerald-600 flex items-center gap-3 min-w-[300px]">
+        <div className="bg-[#d1fae5] p-4 rounded-xl shadow-lg border border-[#6ee7b7] flex items-center gap-3 min-w-[300px]">
           {photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={photoUrl}
               alt={newMember.displayName}
-              className="w-12 h-12 rounded-full object-cover border-2 border-white"
+              className="w-12 h-12 rounded-full object-cover border-2 border-[#059669]"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center text-white font-semibold text-lg border-2 border-white">
+            <div className="w-12 h-12 rounded-full bg-[#059669] flex items-center justify-center text-white font-semibold text-lg border-2 border-[#6ee7b7]">
               {newMember.displayName.charAt(0).toUpperCase()}
             </div>
           )}
           <div className="flex-1">
-            <div className="font-semibold text-white">Membre ajouté</div>
-            <div className="text-sm text-white opacity-95">{newMember.displayName} a été ajouté à l&apos;équipe</div>
+            <div className="font-semibold text-[#065f46]">Membre ajouté</div>
+            <div className="text-sm text-[#065f46] opacity-90">{newMember.displayName} a été ajouté à l&apos;équipe</div>
           </div>
           <button
             onClick={() => toast.dismiss(t)}
-            className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+            className="text-[#065f46] hover:bg-[#059669]/10 rounded p-1 transition-colors opacity-60 hover:opacity-100"
           >
             <X className="h-4 w-4" />
           </button>

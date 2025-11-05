@@ -82,134 +82,181 @@ body {
 }
 
 /* ========================================
-   Sonner Toast Styles - Nuxt UI Inspired
+   Sonner Toast Styles - Nuxt UI Design
    ======================================== */
 
-/* Toast container styles */
+/* Nuxt UI Toast Design - Soft backgrounds with dark text */
 [data-sonner-toaster] {
-  --normal-bg: white;
-  --normal-border: #e5e7eb;
-  --normal-text: #111827;
-  --success-bg: #10b981;
-  --success-border: #059669;
-  --error-bg: #ef4444;
-  --error-border: #dc2626;
-  --warning-bg: #f59e0b;
-  --warning-border: #d97706;
-  --info-bg: #3b82f6;
-  --info-border: #2563eb;
+  /* Success - Soft green with dark text */
+  --success-bg: #d1fae5;
+  --success-border: #6ee7b7;
+  --success-text: #065f46;
+  --success-icon: #059669;
+
+  /* Error - Soft red with dark text */
+  --error-bg: #fee2e2;
+  --error-border: #fca5a5;
+  --error-text: #991b1b;
+  --error-icon: #dc2626;
+
+  /* Warning - Soft orange/amber with dark text */
+  --warning-bg: #fef3c7;
+  --warning-border: #fcd34d;
+  --warning-text: #92400e;
+  --warning-icon: #f59e0b;
+
+  /* Info - Soft blue with dark text */
+  --info-bg: #dbeafe;
+  --info-border: #93c5fd;
+  --info-text: #1e40af;
+  --info-icon: #3b82f6;
 }
 
-/* Individual toast styling */
+/* Individual toast styling - Nuxt UI inspired */
 [data-sonner-toast] {
-  padding: 16px;
-  gap: 12px;
-  font-size: 14px;
-  line-height: 1.5;
-  border-radius: 12px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-  min-height: 64px;
+  padding: 16px !important;
+  gap: 12px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  min-height: 64px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
 }
 
 /* Success toast */
 [data-sonner-toast][data-type="success"] {
   background-color: var(--success-bg) !important;
-  color: white !important;
-  border: 2px solid var(--success-border) !important;
+  border-color: var(--success-border) !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-title],
+[data-sonner-toast][data-type="success"] [data-description] {
+  color: var(--success-text) !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] {
+  color: var(--success-icon) !important;
 }
 
 /* Error toast */
 [data-sonner-toast][data-type="error"] {
   background-color: var(--error-bg) !important;
-  color: white !important;
-  border: 2px solid var(--error-border) !important;
+  border-color: var(--error-border) !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-title],
+[data-sonner-toast][data-type="error"] [data-description] {
+  color: var(--error-text) !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: var(--error-icon) !important;
 }
 
 /* Warning toast */
 [data-sonner-toast][data-type="warning"] {
   background-color: var(--warning-bg) !important;
-  color: white !important;
-  border: 2px solid var(--warning-border) !important;
+  border-color: var(--warning-border) !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-title],
+[data-sonner-toast][data-type="warning"] [data-description] {
+  color: var(--warning-text) !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-icon] {
+  color: var(--warning-icon) !important;
 }
 
 /* Info toast */
 [data-sonner-toast][data-type="info"] {
   background-color: var(--info-bg) !important;
-  color: white !important;
-  border: 2px solid var(--info-border) !important;
+  border-color: var(--info-border) !important;
 }
 
-/* Loading toast */
+[data-sonner-toast][data-type="info"] [data-title],
+[data-sonner-toast][data-type="info"] [data-description] {
+  color: var(--info-text) !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-icon] {
+  color: var(--info-icon) !important;
+}
+
+/* Loading toast - neutral gray */
 [data-sonner-toast][data-type="loading"] {
-  background-color: #6366f1 !important;
-  color: white !important;
-  border: 2px solid #4f46e5 !important;
+  background-color: #f3f4f6 !important;
+  border-color: #d1d5db !important;
 }
 
-/* Toast title - Force white text with shadow for readability */
+[data-sonner-toast][data-type="loading"] [data-title],
+[data-sonner-toast][data-type="loading"] [data-description] {
+  color: #374151 !important;
+}
+
+[data-sonner-toast][data-type="loading"] [data-icon] {
+  color: #6b7280 !important;
+}
+
+/* Toast title */
 [data-sonner-toast] [data-title] {
   font-weight: 600 !important;
   font-size: 15px !important;
-  color: #ffffff !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
   line-height: 1.4 !important;
 }
 
-/* Toast description - Force white text with shadow */
+/* Toast description */
 [data-sonner-toast] [data-description] {
-  color: #ffffff !important;
-  opacity: 0.95 !important;
+  opacity: 0.9 !important;
   font-size: 13px !important;
   margin-top: 4px !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
   line-height: 1.4 !important;
 }
 
-/* Toast icon - Force white color */
+/* Toast icon */
 [data-sonner-toast] [data-icon] {
-  color: #ffffff !important;
   margin-right: 8px !important;
   flex-shrink: 0 !important;
 }
 
-/* Force white text on all child elements */
-[data-sonner-toast] * {
-  color: #ffffff !important;
-}
-
-/* Progress bar at the bottom */
+/* Progress bar at the bottom - Nuxt UI style */
 [data-sonner-toast] [data-content]::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.3);
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  height: 3px;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
   transform-origin: left;
   animation: toast-progress linear forwards;
 }
 
 /* Success progress bar */
 [data-sonner-toast][data-type="success"] [data-content]::after {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--success-icon);
+  opacity: 0.3;
 }
 
 /* Error progress bar */
 [data-sonner-toast][data-type="error"] [data-content]::after {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--error-icon);
+  opacity: 0.3;
 }
 
 /* Warning progress bar */
 [data-sonner-toast][data-type="warning"] [data-content]::after {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--warning-icon);
+  opacity: 0.3;
 }
 
 /* Info progress bar */
 [data-sonner-toast][data-type="info"] [data-content]::after {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--info-icon);
+  opacity: 0.3;
 }
 
 /* Loading progress bar (no countdown) */
@@ -253,11 +300,30 @@ body {
   animation-play-state: paused;
 }
 
-/* Close button */
+/* Close button - dark color for light backgrounds */
 [data-sonner-toast] [data-close-button] {
-  color: white !important;
-  opacity: 0.8;
+  opacity: 0.6;
   transition: opacity 0.2s;
+}
+
+[data-sonner-toast][data-type="success"] [data-close-button] {
+  color: var(--success-text) !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-close-button] {
+  color: var(--error-text) !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-close-button] {
+  color: var(--warning-text) !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-close-button] {
+  color: var(--info-text) !important;
+}
+
+[data-sonner-toast][data-type="loading"] [data-close-button] {
+  color: #374151 !important;
 }
 
 [data-sonner-toast] [data-close-button]:hover {
@@ -267,9 +333,40 @@ body {
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
   [data-sonner-toaster] {
-    --success-bg: #059669;
-    --error-bg: #dc2626;
-    --warning-bg: #d97706;
-    --info-bg: #2563eb;
+    /* Dark mode - slightly darker backgrounds with light text */
+    --success-bg: #064e3b;
+    --success-border: #059669;
+    --success-text: #d1fae5;
+    --success-icon: #6ee7b7;
+
+    --error-bg: #7f1d1d;
+    --error-border: #dc2626;
+    --error-text: #fee2e2;
+    --error-icon: #fca5a5;
+
+    --warning-bg: #78350f;
+    --warning-border: #f59e0b;
+    --warning-text: #fef3c7;
+    --warning-icon: #fcd34d;
+
+    --info-bg: #1e3a8a;
+    --info-border: #3b82f6;
+    --info-text: #dbeafe;
+    --info-icon: #93c5fd;
+  }
+
+  [data-sonner-toast][data-type="loading"] {
+    background-color: #374151 !important;
+    border-color: #6b7280 !important;
+  }
+
+  [data-sonner-toast][data-type="loading"] [data-title],
+  [data-sonner-toast][data-type="loading"] [data-description],
+  [data-sonner-toast][data-type="loading"] [data-icon] {
+    color: #f3f4f6 !important;
+  }
+
+  [data-sonner-toast][data-type="loading"] [data-close-button] {
+    color: #f3f4f6 !important;
   }
 }
