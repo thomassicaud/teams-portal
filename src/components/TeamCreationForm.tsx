@@ -328,40 +328,80 @@ export function TeamCreationForm() {
 
         toast.success('Équipe créée !', {
           id: 'create-step',
-          description: `Équipe "${formData.teamName}" initialisée`,
+          description: `Équipe "${formData.teamName}" initialisée avec succès`,
           duration: 3000,
         });
 
-        // Étape 3: Afficher les canaux créés
+        let currentDelay = 1200; // Délai initial de 1.2s après création
+
+        // Étape 3: Afficher la progression des canaux créés
         if (result.channelsCreated && result.channelsCreated > 0) {
-          // Simuler l'affichage progressif des canaux créés
+          setTimeout(() => {
+            toast.loading('Création des canaux...', {
+              id: 'channels-progress',
+              description: 'Configuration des canaux par défaut',
+            });
+          }, currentDelay);
+          currentDelay += 1000;
+
+          // Afficher chaque canal avec un délai
           for (let i = 0; i < Math.min(DEFAULT_CHANNELS.length, result.channelsCreated); i++) {
             const channel = DEFAULT_CHANNELS[i];
+            const channelIndex = i;
             setTimeout(() => {
-              toast.success(`Canal créé: ${channel.name}`, {
-                description: channel.description,
-                duration: 2500,
+              toast.loading(`Création des canaux... (${channelIndex + 1}/${result.channelsCreated})`, {
+                id: 'channels-progress',
+                description: `Canal: ${channel.name}`,
               });
-            }, i * 300); // 300ms entre chaque canal
+            }, currentDelay);
+            currentDelay += 1000; // 1 seconde entre chaque canal
           }
+
+          // Toast final de succès pour les canaux
+          setTimeout(() => {
+            toast.success('Canaux créés !', {
+              id: 'channels-progress',
+              description: `${result.channelsCreated} canaux configurés avec succès`,
+              duration: 3000,
+            });
+          }, currentDelay);
+          currentDelay += 1200;
         }
 
-        // Étape 4: Afficher les membres ajoutés
+        // Étape 4: Afficher la progression des membres ajoutés
         if (formData.members.length > 0 && result.membersAdded) {
-          const startDelay = (result.channelsCreated || 0) * 300;
+          setTimeout(() => {
+            toast.loading('Ajout des membres...', {
+              id: 'members-progress',
+              description: 'Invitation des membres à l\'équipe',
+            });
+          }, currentDelay);
+          currentDelay += 1000;
+
           for (let i = 0; i < Math.min(formData.members.length, result.membersAdded); i++) {
             const member = formData.members[i];
+            const memberIndex = i;
             setTimeout(() => {
-              toast.success(`Membre ajouté: ${member.displayName}`, {
-                description: member.email,
-                duration: 2500,
+              toast.loading(`Ajout des membres... (${memberIndex + 1}/${result.membersAdded})`, {
+                id: 'members-progress',
+                description: `${member.displayName}`,
               });
-            }, startDelay + i * 300);
+            }, currentDelay);
+            currentDelay += 1000; // 1 seconde entre chaque membre
           }
+
+          // Toast final de succès pour les membres
+          setTimeout(() => {
+            toast.success('Membres ajoutés !', {
+              id: 'members-progress',
+              description: `${result.membersAdded} membres invités avec succès`,
+              duration: 3000,
+            });
+          }, currentDelay);
+          currentDelay += 1200;
         }
 
         // Étape 5: Upload de l'icône si fournie
-        const totalDelay = ((result.channelsCreated || 0) + (result.membersAdded || 0)) * 300;
         if (selectedImage) {
           setTimeout(async () => {
             toast.loading('Upload de l\'icône...', {
@@ -371,7 +411,7 @@ export function TeamCreationForm() {
 
             try {
               await uploadTeamImage(result.teamId, selectedImage);
-              toast.success('Icône uploadée', {
+              toast.success('Icône uploadée !', {
                 id: 'icon-upload',
                 description: 'L\'icône de l\'équipe a été mise à jour',
                 duration: 3000,
@@ -383,7 +423,7 @@ export function TeamCreationForm() {
                 duration: 3000,
               });
             }
-          }, totalDelay);
+          }, currentDelay);
         }
       }
     } catch (error) {
@@ -482,42 +522,82 @@ export function TeamCreationForm() {
       const channelsCreated = result.channelsCreated || 0;
       const membersAdded = result.membersAdded || 0;
 
-      toast.success('Finalisation terminée !', {
+      toast.success('Équipe trouvée !', {
         id: 'finalize-step',
-        description: `Équipe "${pendingTeamName}" finalisée`,
+        description: `Équipe "${pendingTeamName}" prête pour finalisation`,
         duration: 3000,
       });
 
-      // Étape 3: Afficher les canaux créés
+      let currentDelay = 1200; // Délai initial de 1.2s
+
+      // Étape 3: Afficher la progression des canaux créés
       if (channelsCreated > 0) {
-        // Simuler l'affichage progressif des canaux créés
+        setTimeout(() => {
+          toast.loading('Création des canaux...', {
+            id: 'channels-progress',
+            description: 'Configuration des canaux par défaut',
+          });
+        }, currentDelay);
+        currentDelay += 1000;
+
+        // Afficher chaque canal avec un délai
         for (let i = 0; i < Math.min(DEFAULT_CHANNELS.length, channelsCreated); i++) {
           const channel = DEFAULT_CHANNELS[i];
+          const channelIndex = i;
           setTimeout(() => {
-            toast.success(`Canal créé: ${channel.name}`, {
-              description: channel.description,
-              duration: 2500,
+            toast.loading(`Création des canaux... (${channelIndex + 1}/${channelsCreated})`, {
+              id: 'channels-progress',
+              description: `Canal: ${channel.name}`,
             });
-          }, i * 300); // 300ms entre chaque canal
+          }, currentDelay);
+          currentDelay += 1000; // 1 seconde entre chaque canal
         }
+
+        // Toast final de succès pour les canaux
+        setTimeout(() => {
+          toast.success('Canaux créés !', {
+            id: 'channels-progress',
+            description: `${channelsCreated} canaux configurés avec succès`,
+            duration: 3000,
+          });
+        }, currentDelay);
+        currentDelay += 1200;
       }
 
-      // Étape 4: Afficher les membres ajoutés
+      // Étape 4: Afficher la progression des membres ajoutés
       if (formData.members.length > 0 && membersAdded > 0) {
-        const startDelay = channelsCreated * 300;
+        setTimeout(() => {
+          toast.loading('Ajout des membres...', {
+            id: 'members-progress',
+            description: 'Invitation des membres à l\'équipe',
+          });
+        }, currentDelay);
+        currentDelay += 1000;
+
         for (let i = 0; i < Math.min(formData.members.length, membersAdded); i++) {
           const member = formData.members[i];
+          const memberIndex = i;
           setTimeout(() => {
-            toast.success(`Membre ajouté: ${member.displayName}`, {
-              description: member.email,
-              duration: 2500,
+            toast.loading(`Ajout des membres... (${memberIndex + 1}/${membersAdded})`, {
+              id: 'members-progress',
+              description: `${member.displayName}`,
             });
-          }, startDelay + i * 300);
+          }, currentDelay);
+          currentDelay += 1000; // 1 seconde entre chaque membre
         }
+
+        // Toast final de succès pour les membres
+        setTimeout(() => {
+          toast.success('Membres ajoutés !', {
+            id: 'members-progress',
+            description: `${membersAdded} membres invités avec succès`,
+            duration: 3000,
+          });
+        }, currentDelay);
+        currentDelay += 1200;
       }
 
       // Étape 5: Upload de l'icône si fournie
-      const totalDelay = (channelsCreated + membersAdded) * 300;
       if (selectedImage) {
         setTimeout(async () => {
           toast.loading('Upload de l\'icône...', {
@@ -527,7 +607,7 @@ export function TeamCreationForm() {
 
           try {
             await uploadTeamImage(result.teamId, selectedImage);
-            toast.success('Icône uploadée', {
+            toast.success('Icône uploadée !', {
               id: 'finalize-icon',
               description: 'L\'icône de l\'équipe a été mise à jour',
               duration: 3000,
@@ -539,7 +619,7 @@ export function TeamCreationForm() {
               duration: 3000,
             });
           }
-        }, totalDelay);
+        }, currentDelay);
       }
     } catch (error) {
       console.error('Error finalizing team:', error);
