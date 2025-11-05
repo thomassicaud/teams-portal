@@ -280,13 +280,8 @@ export function TeamCreationForm() {
         duration: 2000,
       });
 
-      // Étape 2: Création de l'équipe
-      toast.loading('Création de l\'équipe...', {
-        id: 'create-step',
-        description: `Création de "${formData.teamName}" avec le propriétaire`,
-      });
-
-      const response = await fetch('/api/teams/create', {
+      // Étape 2: Création de l'équipe en temps réel avec streaming
+      const response = await fetch('/api/teams/create-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -297,64 +292,151 @@ export function TeamCreationForm() {
         }),
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || 'Erreur lors de la création de l\'équipe');
+        throw new Error('Erreur lors de la création de l\'équipe');
       }
 
-      if (result.pending) {
-        setPendingTeamName(result.teamName);
-        setStatus('pending');
-        setMessage(result.message);
-        toast.info('Équipe en provisioning', {
-          id: 'create-step',
-          description: 'L\'équipe est en cours de création par Microsoft (2-3 min)',
-          duration: 5000,
-        });
-      } else {
-        setCreatedTeamId(result.teamId);
-        setStatus('success');
-        setMessage(result.message);
+      // Lire le stream d'événements en temps réel
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-        // Résumé détaillé de ce qui a été créé
-        const details: string[] = [];
-        if (result.channelsCreated) {
-          details.push(`${result.channelsCreated} canaux créés`);
+      if (!reader) {
+        throw new Error('Unable to read response stream');
+      }
+
+      let finalTeamId = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        // Décoder les chunks et les ajouter au buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Traiter chaque ligne (événement)
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Garder la dernière ligne incomplète
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          try {
+            const event = JSON.parse(line);
+
+            switch (event.type) {
+              case 'start':
+                toast.loading(event.data.message, {
+                  id: 'create-step',
+                });
+                break;
+
+              case 'progress':
+                toast.loading(event.data.message, {
+                  id: 'create-step',
+                });
+                break;
+
+              case 'pending':
+                setPendingTeamName(event.data.teamName);
+                setStatus('pending');
+                setMessage(event.data.message);
+                toast.info('Équipe en provisioning', {
+                  id: 'create-step',
+                  description: event.data.message,
+                  duration: 5000,
+                });
+                return; // Sortir si l'équipe est en provisioning
+
+              case 'team_found':
+                finalTeamId = event.data.teamId;
+                toast.success(event.data.message, {
+                  id: 'create-step',
+                  duration: 2000,
+                });
+                break;
+
+              case 'channel_created':
+                toast.success(`Canal créé: ${event.data.name}`, {
+                  description: `${event.data.index}/${event.data.total} - ${event.data.description}`,
+                  duration: 2000,
+                });
+                break;
+
+              case 'channel_error':
+                toast.warning(`Erreur canal: ${event.data.name}`, {
+                  description: event.data.error,
+                  duration: 2000,
+                });
+                break;
+
+              case 'member_added':
+                toast.success(`Membre ajouté: ${event.data.name}`, {
+                  description: `${event.data.index}/${event.data.total} - ${event.data.email}`,
+                  duration: 2000,
+                });
+                break;
+
+              case 'member_error':
+                toast.warning(`Erreur membre: ${event.data.name}`, {
+                  description: event.data.error,
+                  duration: 2000,
+                });
+                break;
+
+              case 'complete':
+                finalTeamId = event.data.teamId;
+                setCreatedTeamId(event.data.teamId);
+                setStatus('success');
+                setMessage(event.data.message);
+
+                const details: string[] = [];
+                if (event.data.channelsCreated) {
+                  details.push(`${event.data.channelsCreated} canaux`);
+                }
+                if (event.data.membersAdded) {
+                  details.push(`${event.data.membersAdded} membres`);
+                }
+
+                toast.success('✅ Création terminée !', {
+                  id: 'create-step',
+                  description: details.length > 0 ? details.join(' • ') : event.data.message,
+                  duration: 5000,
+                });
+                break;
+
+              case 'error':
+                throw new Error(event.data.message);
+            }
+          } catch (parseError) {
+            console.error('Error parsing event:', parseError, line);
+          }
         }
-        if (result.membersAdded) {
-          details.push(`${result.membersAdded} membres ajoutés`);
-        }
+      }
 
-        toast.success('Équipe créée avec succès !', {
-          id: 'create-step',
-          description: details.length > 0 ? details.join(' • ') : `Équipe "${formData.teamName}" prête`,
-          duration: 5000,
+      // Upload de l'icône si fournie et si on a un teamId
+      if (selectedImage && finalTeamId) {
+        toast.loading('Upload de l\'icône...', {
+          id: 'icon-upload',
+          description: 'Ajout de l\'icône personnalisée',
         });
 
-        // Upload de l'icône si fournie
-        if (selectedImage) {
-          toast.loading('Upload de l\'icône...', {
-            id: 'icon-upload',
-            description: 'Ajout de l\'icône personnalisée',
-          });
-
-          uploadTeamImage(result.teamId, selectedImage)
-            .then(() => {
-              toast.success('Icône uploadée !', {
-                id: 'icon-upload',
-                description: 'L\'icône de l\'équipe a été ajoutée',
-                duration: 3000,
-              });
-            })
-            .catch(() => {
-              toast.warning('Icône non uploadée', {
-                id: 'icon-upload',
-                description: 'L\'icône n\'a pas pu être ajoutée',
-                duration: 3000,
-              });
+        uploadTeamImage(finalTeamId, selectedImage)
+          .then(() => {
+            toast.success('Icône uploadée !', {
+              id: 'icon-upload',
+              description: 'L\'icône de l\'équipe a été ajoutée',
+              duration: 3000,
             });
-        }
+          })
+          .catch(() => {
+            toast.warning('Icône non uploadée', {
+              id: 'icon-upload',
+              description: 'L\'icône n\'a pas pu être ajoutée',
+              duration: 3000,
+            });
+          });
       }
     } catch (error) {
       console.error('Error creating team:', error);
