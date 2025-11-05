@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Search, Plus, Loader2, Users, CheckCircle2, Clock, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TeamMember {
   id: string;
@@ -57,8 +58,9 @@ export function TeamCreationForm() {
         .get();
 
       if (users.value.length === 0) {
-        setMessage('Utilisateur non trouvé');
-        setStatus('error');
+        toast.error('Utilisateur non trouvé', {
+          description: `Aucun utilisateur trouvé avec l'email ${memberEmail}`,
+        });
         return;
       }
 
@@ -70,8 +72,9 @@ export function TeamCreationForm() {
       };
 
       if (formData.members.some(m => m.id === newMember.id)) {
-        setMessage('Cet utilisateur est déjà dans la liste');
-        setStatus('error');
+        toast.warning('Utilisateur déjà ajouté', {
+          description: `${newMember.displayName} est déjà dans la liste`,
+        });
         return;
       }
 
@@ -80,20 +83,30 @@ export function TeamCreationForm() {
         members: [...prev.members, newMember],
       }));
       setMemberEmail('');
-      setStatus('idle');
-      setMessage('');
+      toast.success('Membre ajouté', {
+        description: `${newMember.displayName} a été ajouté à l'équipe`,
+        duration: 3000,
+      });
     } catch (error) {
       console.error('Error finding user:', error);
-      setMessage('Erreur lors de la recherche de l\'utilisateur');
-      setStatus('error');
+      toast.error('Erreur de recherche', {
+        description: 'Impossible de rechercher l\'utilisateur',
+      });
     }
   };
 
   const removeMember = (memberId: string) => {
+    const member = formData.members.find(m => m.id === memberId);
     setFormData(prev => ({
       ...prev,
       members: prev.members.filter(m => m.id !== memberId),
     }));
+    if (member) {
+      toast.info('Membre retiré', {
+        description: `${member.displayName} a été retiré de l'équipe`,
+        duration: 2000,
+      });
+    }
   };
 
   const searchOwner = async () => {
@@ -101,15 +114,16 @@ export function TeamCreationForm() {
 
     try {
       const graphClient = createGraphClient(account);
-      
+
       const users = await graphClient
         .api('/users')
         .filter(`mail eq '${formData.ownerEmail}' or userPrincipalName eq '${formData.ownerEmail}'`)
         .get();
 
       if (users.value.length === 0) {
-        setMessage('Propriétaire non trouvé');
-        setStatus('error');
+        toast.error('Propriétaire non trouvé', {
+          description: `Aucun propriétaire trouvé avec l'email ${formData.ownerEmail}`,
+        });
         return;
       }
 
@@ -118,25 +132,33 @@ export function TeamCreationForm() {
         ...prev,
         ownerId: user.id,
       }));
-      setStatus('idle');
-      setMessage('');
+      toast.success('Propriétaire trouvé', {
+        description: `${user.displayName} sera le propriétaire de l'équipe`,
+        duration: 3000,
+      });
     } catch (error) {
       console.error('Error finding owner:', error);
-      setMessage('Erreur lors de la recherche du propriétaire');
-      setStatus('error');
+      toast.error('Erreur de recherche', {
+        description: 'Impossible de rechercher le propriétaire',
+      });
     }
   };
 
   const createTeam = async () => {
     if (!account || !formData.teamName.trim() || !formData.ownerId) {
-      setMessage('Veuillez remplir tous les champs requis');
-      setStatus('error');
+      toast.error('Formulaire incomplet', {
+        description: 'Veuillez remplir le nom de l\'équipe et rechercher un propriétaire',
+      });
       return;
     }
 
     setLoading(true);
     setStatus('idle');
     setMessage('');
+
+    toast.loading('Création de l\'équipe en cours...', {
+      id: 'create-team',
+    });
 
     try {
       // Get fresh access token
@@ -180,11 +202,21 @@ export function TeamCreationForm() {
         setPendingTeamName(result.teamName);
         setStatus('pending');
         setMessage(result.message);
+        toast.info('Équipe en provisioning', {
+          id: 'create-team',
+          description: 'L\'équipe est en cours de création par Microsoft (2-3 min)',
+          duration: 5000,
+        });
       } else {
         setCreatedTeamId(result.teamId);
         setStatus('success');
         setMessage(result.message);
-        
+        toast.success('Équipe créée avec succès !', {
+          id: 'create-team',
+          description: `L'équipe "${formData.teamName}" a été créée`,
+          duration: 4000,
+        });
+
         // Upload de l'icône si fournie
         if (selectedImage) {
           await uploadTeamImage(result.teamId, selectedImage);
@@ -192,8 +224,14 @@ export function TeamCreationForm() {
       }
     } catch (error) {
       console.error('Error creating team:', error);
-      setMessage(error instanceof Error ? error.message : 'Erreur lors de la création de l\'équipe');
+      const errorMsg = error instanceof Error ? error.message : 'Erreur lors de la création de l\'équipe';
+      setMessage(errorMsg);
       setStatus('error');
+      toast.error('Échec de création', {
+        id: 'create-team',
+        description: errorMsg,
+        duration: 5000,
+      });
     } finally {
       setLoading(false);
     }
@@ -201,14 +239,20 @@ export function TeamCreationForm() {
 
   const finalizeTeam = async () => {
     if (!account || !pendingTeamName) {
-      setMessage('Données manquantes pour finaliser l\'équipe');
-      setStatus('error');
+      toast.error('Impossible de finaliser', {
+        description: 'Données manquantes pour finaliser l\'équipe',
+      });
       return;
     }
 
     setLoading(true);
     setStatus('idle');
     setMessage('');
+
+    toast.loading('Finalisation en cours...', {
+      id: 'finalize-team',
+      description: 'Ajout des canaux et membres',
+    });
 
     try {
       // Get fresh access token
@@ -254,15 +298,26 @@ export function TeamCreationForm() {
       setPendingTeamName(null);
       setStatus('success');
       setMessage(result.message);
-      
+      toast.success('Équipe finalisée !', {
+        id: 'finalize-team',
+        description: `${result.channelsCreated || 0} canaux et ${result.membersAdded || 0} membres ajoutés`,
+        duration: 5000,
+      });
+
       // Upload de l'icône si fournie
       if (selectedImage) {
         await uploadTeamImage(result.teamId, selectedImage);
       }
     } catch (error) {
       console.error('Error finalizing team:', error);
-      setMessage(error instanceof Error ? error.message : 'Erreur lors de la finalisation de l\'équipe');
+      const errorMsg = error instanceof Error ? error.message : 'Erreur lors de la finalisation de l\'équipe';
+      setMessage(errorMsg);
       setStatus('error');
+      toast.error('Échec de finalisation', {
+        id: 'finalize-team',
+        description: errorMsg,
+        duration: 5000,
+      });
     } finally {
       setLoading(false);
     }
@@ -279,6 +334,11 @@ export function TeamCreationForm() {
     console.log('Image file:', imageFile.name, imageFile.size, imageFile.type);
 
     setImageUploading(true);
+
+    toast.loading('Upload de l\'icône...', {
+      id: 'upload-icon',
+    });
+
     try {
       // Get fresh access token
       const tokenRequest = {
@@ -317,10 +377,18 @@ export function TeamCreationForm() {
       }
 
       console.log('Icon uploaded successfully:', result);
-      setMessage(prevMessage => `${prevMessage} \n✅ Icône de l'équipe mise à jour avec succès!`);
+      toast.success('Icône mise à jour !', {
+        id: 'upload-icon',
+        description: 'L\'icône de l\'équipe a été mise à jour avec succès',
+        duration: 3000,
+      });
     } catch (error) {
       console.error('Error uploading team icon:', error);
-      setMessage(prevMessage => `${prevMessage} \n⚠️ Icône non mise à jour: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+      toast.error('Échec de l\'upload', {
+        id: 'upload-icon',
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        duration: 4000,
+      });
     } finally {
       setImageUploading(false);
     }

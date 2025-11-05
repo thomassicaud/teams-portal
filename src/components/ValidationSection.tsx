@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle2, FolderTree, AlertCircle, Loader2, ExternalLink, RotateCcw, FileCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ValidationSectionProps {
   teamId: string;
@@ -31,14 +32,17 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
 
   const testGraphConnectivity = async () => {
     if (!account) {
-      setValidationStatus('error');
-      setValidationMessage('Non authentifié');
+      toast.error('Non authentifié', {
+        description: 'Vous devez être connecté pour tester la connectivité',
+      });
       return;
     }
 
     setValidating(true);
-    setValidationStatus('idle');
-    setValidationMessage('');
+
+    toast.loading('Test de connectivité...', {
+      id: 'test-connectivity',
+    });
 
     try {
       const tokenRequest = {
@@ -64,12 +68,18 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
         throw new Error(result.error || 'Test de connectivité échoué');
       }
 
-      setValidationStatus('success');
-      setValidationMessage(`✅ Test réussi ! Utilisateur: ${result.user}`);
+      toast.success('Test réussi !', {
+        id: 'test-connectivity',
+        description: `Utilisateur connecté : ${result.user}`,
+        duration: 3000,
+      });
     } catch (error: unknown) {
       console.error('Connectivity test failed:', error);
-      setValidationStatus('error');
-      setValidationMessage(`❌ Test de connectivité échoué: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+      toast.error('Test échoué', {
+        id: 'test-connectivity',
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        duration: 4000,
+      });
     } finally {
       setValidating(false);
     }
@@ -77,8 +87,9 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
 
   const validateAndCreateFolders = async () => {
     if (!account) {
-      setValidationStatus('error');
-      setValidationMessage('Non authentifié');
+      toast.error('Non authentifié', {
+        description: 'Vous devez être connecté pour créer la structure',
+      });
       return;
     }
 
@@ -86,7 +97,12 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
     setValidationStatus('idle');
     setValidationMessage('');
 
-    try {
+    toast.loading('Création de la structure de dossiers...', {
+      id: 'create-folders',
+      description: 'Cela peut prendre quelques instants',
+    });
+
+    try{
       // Get fresh access token
       const tokenRequest = {
         scopes: [
@@ -117,18 +133,34 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
         // Si l'équipe n'est pas trouvée, proposer de réessayer
         if (response.status === 404) {
           setValidationStatus('error');
-          
+
           let message = result.error || 'Équipe non trouvée';
-          
+
           if (result.retryRecommended) {
             const waitTime = result.waitTime || 120;
             if (waitTime <= 60) {
               message += `\n\n⚡ Erreur réseau temporaire. Réessayez dans ${waitTime} secondes.`;
+              toast.warning('Équipe non trouvée', {
+                id: 'create-folders',
+                description: `Réessayez dans ${waitTime} secondes`,
+                duration: 5000,
+              });
             } else {
               message += `\n\n⏱️ L'équipe peut encore être en cours de provisioning. Attendez ${Math.ceil(waitTime/60)} minutes et réessayez.`;
+              toast.warning('Équipe en provisioning', {
+                id: 'create-folders',
+                description: `Attendez ${Math.ceil(waitTime/60)} minutes et réessayez`,
+                duration: 6000,
+              });
             }
+          } else {
+            toast.error('Équipe non trouvée', {
+              id: 'create-folders',
+              description: result.error || 'Impossible de trouver l\'équipe',
+              duration: 5000,
+            });
           }
-          
+
           setValidationMessage(message);
           return;
         }
@@ -138,21 +170,36 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
       setValidationComplete(true);
       setValidationStatus('success');
       setValidationMessage(result.message);
+      toast.success('Structure créée !', {
+        id: 'create-folders',
+        description: `${result.channelsSuccess || 0}/${result.channelsProcessed || 0} canaux configurés avec succès`,
+        duration: 5000,
+      });
     } catch (error: unknown) {
       console.error('Error during validation:', error);
       setValidationStatus('error');
-      
+
       let message = error instanceof Error ? error.message : 'Erreur lors de la validation';
-      
+      let toastDescription = message;
+
       // Handle specific error types
       if (message.includes('Network error') || message.includes('fetch failed')) {
         message += '\n\n⚡ Problème réseau temporaire. Réessayez dans quelques secondes.';
+        toastDescription = 'Problème réseau temporaire';
       } else if (message.includes('timeout') || message.includes('timed out')) {
         message += '\n\n⏱️ Délai d\'attente dépassé. Les services Microsoft peuvent être lents. Réessayez dans 1-2 minutes.';
+        toastDescription = 'Délai dépassé - Réessayez dans 1-2 minutes';
       } else if (message.includes('license')) {
         message += '\n\n⚠️ Problème de licence Office 365. Vérifiez que tous les utilisateurs ont les bonnes licences.';
+        toastDescription = 'Problème de licence Office 365';
       }
-      
+
+      toast.error('Échec de création', {
+        id: 'create-folders',
+        description: toastDescription,
+        duration: 6000,
+      });
+
       setValidationMessage(message);
     } finally {
       setValidating(false);
