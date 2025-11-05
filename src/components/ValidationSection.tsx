@@ -3,6 +3,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMsalInstance } from '@/lib/auth-config';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { CheckCircle2, FolderTree, AlertCircle, Loader2, ExternalLink, RotateCcw, FileCheck } from 'lucide-react';
 
 interface ValidationSectionProps {
   teamId: string;
@@ -198,178 +203,232 @@ export function ValidationSection({ teamId }: ValidationSectionProps) {
   // Étape 3 : Configuration terminée
   if (validationComplete && validationStatus === 'success') {
     return (
-      <div className="border-t pt-6 mt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          ✅ Configuration terminée !
-        </h3>
-        <div className="bg-green-50 border border-green-200 rounded-md p-4">
-          <p className="text-green-800 mb-2">
+      <Card className="border-green-500 bg-green-50/50">
+        <CardHeader>
+          <CardTitle className="text-green-800 flex items-center gap-2">
+            <CheckCircle2 className="h-6 w-6" />
+            Configuration terminée !
+          </CardTitle>
+          <CardDescription className="text-green-700">
             L&apos;équipe Teams a été créée avec succès et la structure de dossiers SharePoint est en place.
-          </p>
-          <div className="text-green-700 text-sm whitespace-pre-line">
-            {validationMessage}
-          </div>
-          
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert className="bg-green-100 border-green-200">
+            <AlertDescription className="text-green-700 text-sm whitespace-pre-line">
+              {validationMessage}
+            </AlertDescription>
+          </Alert>
+
           {validationMessage.includes('❌') && (
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-              <p className="text-yellow-800 text-sm">
-                <strong>⚠️ Certains canaux ont échoué.</strong> 
-              </p>
-              <div className="mt-2 text-yellow-700 text-sm">
-                <p><strong>Solutions possibles :</strong></p>
-                <ul className="list-disc list-inside mt-1 space-y-1">
-                  <li>Vérifiez que tous les utilisateurs ont une licence Office 365 avec SharePoint</li>
-                  <li>Attendez quelques minutes et réessayez (les licences peuvent prendre du temps à se synchroniser)</li>
-                  <li>Créez les dossiers manuellement dans SharePoint si nécessaire</li>
-                  <li>Contactez l&apos;administrateur IT pour vérifier les licences</li>
-                </ul>
-              </div>
-            </div>
+            <Alert variant="default" className="bg-yellow-50 border-yellow-200">
+              <AlertCircle className="h-4 w-4 text-yellow-800" />
+              <AlertDescription>
+                <p className="text-yellow-800 font-semibold mb-2">Certains canaux ont échoué</p>
+                <div className="text-yellow-700 text-sm">
+                  <p className="font-medium mb-1">Solutions possibles :</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Vérifiez que tous les utilisateurs ont une licence Office 365 avec SharePoint</li>
+                    <li>Attendez quelques minutes et réessayez (les licences peuvent prendre du temps à se synchroniser)</li>
+                    <li>Créez les dossiers manuellement dans SharePoint si nécessaire</li>
+                    <li>Contactez l&apos;administrateur IT pour vérifier les licences</li>
+                  </ul>
+                </div>
+              </AlertDescription>
+            </Alert>
           )}
-        </div>
-        <div className="flex gap-3 mt-4 flex-wrap">
-          <button
-            onClick={openTeamsLink}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Ouvrir dans Teams
-          </button>
-          {validationMessage.includes('❌') && (
-            <button
-              onClick={() => {
-                setValidationComplete(false);
-                setValidationStatus('idle');
-                setValidationMessage('');
-                setFilesInitialized(true); // Go back to step 2
-              }}
-              className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
+
+          <div className="flex gap-3 flex-wrap">
+            <Button
+              onClick={openTeamsLink}
+              variant="default"
+              className="gap-2"
             >
-              Réessayer la création des dossiers
-            </button>
-          )}
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-          >
-            Créer une nouvelle équipe
-          </button>
-        </div>
-      </div>
+              <ExternalLink className="h-4 w-4" />
+              Ouvrir dans Teams
+            </Button>
+            {validationMessage.includes('❌') && (
+              <Button
+                onClick={() => {
+                  setValidationComplete(false);
+                  setValidationStatus('idle');
+                  setValidationMessage('');
+                  setFilesInitialized(true);
+                }}
+                variant="secondary"
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Réessayer la création des dossiers
+              </Button>
+            )}
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+            >
+              Créer une nouvelle équipe
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   // Étape 2 : Validation des fichiers initialisés
   if (filesInitialized) {
     return (
-      <div className="border-t pt-6 mt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Étape finale : Créer la structure de dossiers
-        </h3>
-        
-        <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-          <p className="text-green-800 mb-2">
-            ✅ <strong>Parfait !</strong> Les onglets &quot;Fichiers&quot; ont été initialisés.
-          </p>
-          <p className="text-green-700 text-sm">
-            Vous pouvez maintenant créer la structure de dossiers standardisée dans chaque canal.
-          </p>
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FolderTree className="h-5 w-5" />
+            Étape finale : Créer la structure de dossiers
+          </CardTitle>
+          <CardDescription>
+            Les onglets &quot;Fichiers&quot; ont été initialisés. Créez maintenant la structure standardisée.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert className="bg-green-50 border-green-200">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertDescription>
+              <p className="text-green-800 font-semibold">Parfait !</p>
+              <p className="text-green-700 text-sm mt-1">
+                Vous pouvez maintenant créer la structure de dossiers standardisée dans chaque canal.
+              </p>
+            </AlertDescription>
+          </Alert>
 
-        {validationMessage && (
-          <div className={`p-3 rounded-md mb-4 ${
-            validationStatus === 'success' ? 'bg-green-100 text-green-800' : 
-            validationStatus === 'error' ? 'bg-red-100 text-red-800' : 
-            'bg-blue-100 text-blue-800'
-          }`}>
-            {validationMessage}
+          {validationMessage && (
+            <Alert
+              variant={validationStatus === 'error' ? 'destructive' : 'default'}
+              className={validationStatus === 'success' ? 'bg-green-50 border-green-200' : ''}
+            >
+              <AlertDescription className="whitespace-pre-line">
+                {validationMessage}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex gap-3 flex-wrap">
+            <Button
+              onClick={validateAndCreateFolders}
+              disabled={validating}
+              variant="default"
+              className="gap-2"
+            >
+              {validating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Création des dossiers en cours...
+                </>
+              ) : (
+                <>
+                  <FolderTree className="h-4 w-4" />
+                  Créer la structure de dossiers SharePoint
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={testGraphConnectivity}
+              disabled={validating}
+              variant="outline"
+              className="gap-2"
+            >
+              <FileCheck className="h-4 w-4" />
+              Test connectivité
+            </Button>
+            <Button
+              onClick={openTeamsLink}
+              variant="secondary"
+              className="gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Ouvrir dans Teams
+            </Button>
           </div>
-        )}
-
-        <div className="flex gap-3 flex-wrap">
-          <button
-            onClick={validateAndCreateFolders}
-            disabled={validating}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {validating ? 'Création des dossiers en cours...' : 'Créer la structure de dossiers SharePoint'}
-          </button>
-          <button
-            onClick={testGraphConnectivity}
-            disabled={validating}
-            className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            🔍 Test connectivité
-          </button>
-          <button
-            onClick={openTeamsLink}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Ouvrir dans Teams
-          </button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
   // Étape 1 : Initialisation des onglets Fichiers
   return (
-    <div className="border-t pt-6 mt-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">
-        Étape 1 : Initialiser les onglets &quot;Fichiers&quot;
-      </h3>
-      
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
-        <p className="text-blue-800 mb-3">
-          <strong>Action requise :</strong> Pour créer la structure de dossiers SharePoint, vous devez d&apos;abord initialiser les onglets &quot;Fichiers&quot; :
-        </p>
-        <ol className="list-decimal list-inside text-blue-800 space-y-2 mb-3">
-          <li><strong>Vérifier que l&apos;équipe apparaît dans Teams</strong> (si ce n&apos;est pas le cas, attendez 1-2 minutes)</li>
-          <li><strong>Ouvrir Microsoft Teams</strong> (bouton ci-dessous)</li>
-          <li><strong>Accéder à votre équipe</strong> nouvellement créée</li>
-          <li><strong>Pour chaque canal</strong> (Général, 1-ADMINISTRATIF, 2-OPÉRATIONNEL, 3-INFORMATIQUE, 4-DOSSIERS_DE_SUBVENTIONS) :
-            <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-              <li>Cliquer sur le canal</li>
-              <li>Cliquer sur l&apos;onglet <strong>&quot;Fichiers&quot;</strong></li>
-              <li>Attendre que l&apos;onglet se charge complètement</li>
-            </ul>
-          </li>
-          <li><strong>Revenir ici</strong> et cliquer sur &quot;J&apos;ai initialisé tous les onglets Fichiers&quot;</li>
-        </ol>
-        <div className="bg-blue-100 border border-blue-300 rounded p-3 mt-3">
-          <p className="text-blue-800 text-sm">
-            <strong>💡 Astuce :</strong> Cette étape est nécessaire pour que SharePoint crée les bibliothèques de documents de chaque canal.
-          </p>
-        </div>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileCheck className="h-5 w-5" />
+          Étape 1 : Initialiser les onglets &quot;Fichiers&quot;
+        </CardTitle>
+        <CardDescription>
+          Action requise pour créer la structure de dossiers SharePoint
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Alert>
+          <AlertDescription>
+            <p className="font-semibold text-blue-800 mb-3">
+              Pour créer la structure de dossiers SharePoint, vous devez d&apos;abord initialiser les onglets &quot;Fichiers&quot; :
+            </p>
+            <ol className="list-decimal list-inside text-blue-800 space-y-2">
+              <li><strong>Vérifier que l&apos;équipe apparaît dans Teams</strong> (si ce n&apos;est pas le cas, attendez 1-2 minutes)</li>
+              <li><strong>Ouvrir Microsoft Teams</strong> (bouton ci-dessous)</li>
+              <li><strong>Accéder à votre équipe</strong> nouvellement créée</li>
+              <li><strong>Pour chaque canal</strong> (Général, 1-ADMINISTRATIF, 2-OPÉRATIONNEL, 3-INFORMATIQUE, 4-DOSSIERS_DE_SUBVENTIONS) :
+                <ul className="list-disc list-inside ml-4 mt-1 space-y-1 text-sm">
+                  <li>Cliquer sur le canal</li>
+                  <li>Cliquer sur l&apos;onglet <strong>&quot;Fichiers&quot;</strong></li>
+                  <li>Attendre que l&apos;onglet se charge complètement</li>
+                </ul>
+              </li>
+              <li><strong>Revenir ici</strong> et cliquer sur &quot;J&apos;ai initialisé tous les onglets Fichiers&quot;</li>
+            </ol>
+            <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mt-3">
+              <p className="text-blue-800 text-sm flex items-start gap-2">
+                <span className="text-lg">💡</span>
+                <span><strong>Astuce :</strong> Cette étape est nécessaire pour que SharePoint crée les bibliothèques de documents de chaque canal.</span>
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
 
-      {validationMessage && validationStatus === 'error' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
-          <p className="text-yellow-800 whitespace-pre-line">
-            {validationMessage}
-          </p>
-        </div>
-      )}
+        {validationMessage && validationStatus === 'error' && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="whitespace-pre-line">
+              {validationMessage}
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <div className="flex gap-3">
-        <button
-          onClick={() => window.open('https://teams.microsoft.com', '_blank')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Ouvrir Teams
-        </button>
-        <button
-          onClick={() => setFilesInitialized(true)}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-        >
-          J&apos;ai initialisé tous les onglets &quot;Fichiers&quot;
-        </button>
-        <button
-          onClick={testIconAccess}
-          className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-        >
-          🔍 Tester accès icône
-        </button>
-      </div>
-    </div>
+        <Separator />
+
+        <div className="flex gap-3 flex-wrap">
+          <Button
+            onClick={() => window.open('https://teams.microsoft.com', '_blank')}
+            variant="default"
+            className="gap-2"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Ouvrir Teams
+          </Button>
+          <Button
+            onClick={() => setFilesInitialized(true)}
+            variant="secondary"
+            className="gap-2"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            J&apos;ai initialisé tous les onglets &quot;Fichiers&quot;
+          </Button>
+          <Button
+            onClick={testIconAccess}
+            variant="outline"
+            className="gap-2"
+          >
+            <FileCheck className="h-4 w-4" />
+            Tester accès icône
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

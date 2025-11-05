@@ -2,6 +2,9 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { getMsalInstance, loginRequest } from '@/lib/auth-config';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { LogIn, LogOut, RefreshCw } from 'lucide-react';
 
 export function LoginButton() {
   const { login, logout, isAuthenticated, account } = useAuth();
@@ -23,32 +26,40 @@ export function LoginButton() {
 
   if (isAuthenticated && account) {
     return (
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-600">
-          Connecté en tant que {account.name}
-        </span>
-        <button
+      <div className="flex items-center gap-3 flex-wrap">
+        <Badge variant="secondary" className="text-sm py-1.5 px-3">
+          {account.name}
+        </Badge>
+        <Button
           onClick={forceReauth}
-          className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
+          variant="outline"
+          size="sm"
+          className="gap-2"
         >
+          <RefreshCw className="h-4 w-4" />
           Renouveler permissions
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={logout}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          variant="destructive"
+          size="default"
+          className="gap-2"
         >
+          <LogOut className="h-4 w-4" />
           Se déconnecter
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <button
+    <Button
       onClick={login}
-      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+      size="lg"
+      className="gap-2"
     >
+      <LogIn className="h-5 w-5" />
       Se connecter avec Microsoft 365
-    </button>
+    </Button>
   );
 }
